@@ -1,160 +1,150 @@
-import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react"
 import type { Metadata } from "next"
-import { Link } from "next-view-transitions"
+import { MapPin, Phone } from "lucide-react"
+import { PageContainer } from "@/components/layout/page-container"
+import { OrderActions, PhoneButton } from "@/components/order/order-actions"
+import { InstagramIcon, WhatsAppIcon } from "@/components/layout/home-icons"
+import { siteConfig, siteDescription } from "@/lib/site"
+import { toFaDigits } from "@/lib/utils"
+
+export const dynamic = "force-dynamic"
+
+// ---------------------------------------------------------------------------
+// Contact — WhatsApp, Instagram Direct, and phone are the ordering
+// channels for Romano Finger. No contact form: the backend exposes no
+// inquiry workflow, and orders are coordinated personally anyway.
+// ---------------------------------------------------------------------------
 
 export const metadata: Metadata = {
-    title: "ارتباط با ما",
-    description: "راه‌های تماس با تیم پشتیبانی و شبکه‌های اجتماعی ما",
+    title: "تماس با ما | سفارش فینگر فود و رزرو مراسم در یزد",
+    description:
+        "برای سفارش فینگر فود یزد، دیزاین میز و تشریفات مراسم با رومانو فینگر تماس بگیرید؛ واتساپ، اینستاگرام و شماره ۰۹۱۳۱۹۴۱۳۶۶ در دسترس شماست.",
+    alternates: { canonical: "/contact" },
 }
 
-const CONTACT_INFO = [
+const CONTACT_CARDS = [
+    {
+        icon: WhatsAppIcon,
+        label: "سفارش از واتساپ",
+        value: "پاسخ‌گویی سریع، هر روز هفته",
+        href: siteConfig.whatsappUrl,
+        external: true,
+    },
+    {
+        icon: InstagramIcon,
+        label: "دایرکت اینستاگرام",
+        value: "سفارش و مشاهده نمونه کارها",
+        href: siteConfig.instagramUrl,
+        external: true,
+    },
     {
         icon: Phone,
-        label: "تلفن پشتیبانی",
-        value: "۰۹۰۵۹۰۸۵۲۳۰",
-        href: "tel:+989059085230",
-    },
-    {
-        icon: MessageCircle,
-        label: "واتساپ",
-        value: "۰۹۰۵۹۰۸۵۲۳۰",
-        href: "https://wa.me/989059085230",
-    },
-    {
-        icon: Mail,
-        label: "ایمیل",
-        value: "support@starboy.com",
-        href: "mailto:support@starboy.com",
+        label: "تماس تلفنی",
+        value: toFaDigits(siteConfig.phone),
+        href: siteConfig.phoneHref,
+        external: false,
     },
     {
         icon: MapPin,
-        label: "آدرس",
-        value: "اصفهان، شاهین‌شهر، خیابان فردوسی، پلاک ۷۶",
-        href: "/contact",
-    },
-    {
-        icon: Clock,
-        label: "ساعات پاسخگویی",
-        value: "شنبه تا پنجشنبه، ۹ صبح تا ۶ عصر",
+        label: "موقعیت",
+        value: siteConfig.location,
         href: null,
+        external: false,
     },
-]
-
-const SOCIAL_LINKS = [
-    // {
-    //     icon: Rss,
-    //     label: "اینستاگرام",
-    //     handle: "@starboy",
-    //     href: "https://instagram.com/starboy",
-    // },
-    // {
-    //     icon: Send,
-    //     label: "تلگرام",
-    //     handle: "@starboy",
-    //     href: "https://t.me/starboy",
-    // },
-    {
-        icon: MessageCircle,
-        label: "واتساپ",
-        handle: "چت مستقیم",
-        href: "https://wa.me/989059085230",
-    },
-]
+] as const
 
 export default function ContactPage() {
+    const localBusinessLd = {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        name: siteConfig.name,
+        alternateName: siteConfig.nameEn,
+        description: siteDescription,
+        telephone: `+${siteConfig.whatsappUrl.replace("https://wa.me/", "")}`,
+        address: {
+            "@type": "PostalAddress",
+            addressLocality: siteConfig.city,
+            addressCountry: "IR",
+        },
+        sameAs: [siteConfig.instagramUrl],
+    }
+
     return (
-        <main dir="rtl" className="min-h-screen pt-16">
-            <div className="mx-auto max-w-295 px-4 py-14 sm:px-6 sm:py-20 xl:px-10">
-                {/* Heading */}
-                <div className="mb-12 max-w-xl sm:mb-16">
-                    <span className="text-xs font-medium text-muted-foreground">ارتباط با ما</span>
-                    <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                        هر سوالی دارید، همین‌جا در دسترسیم
-                    </h1>
-                    <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
-                        تیم پشتیبانی استاربوی هر روز هفته پاسخگوی شماست. از راه‌های زیر با ما تماس
-                        بگیرید یا در شبکه‌های اجتماعی دنبال‌مان کنید.
-                    </p>
-                </div>
+        <PageContainer className="pb-24">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessLd) }}
+            />
 
-                {/* Contact info */}
-                <div className="grid gap-3 sm:grid-cols-2">
-                    {CONTACT_INFO.map((item) => {
-                        const Icon = item.icon
-                        const content = (
-                            <>
-                                <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-accent">
-                                    <Icon className="size-[1.15rem] text-foreground" />
-                                </div>
-                                <div className="flex flex-col gap-0.5">
-                                    <span className="text-xs font-medium text-muted-foreground">
-                                        {item.label}
-                                    </span>
-                                    <span className="text-sm font-medium text-foreground">
-                                        {item.value}
-                                    </span>
-                                </div>
-                            </>
-                        )
+            <header className="max-w-2xl">
+                <p className="text-[11px] font-medium text-primary">تماس با {siteConfig.name}</p>
+                <h1 className="mt-2 text-3xl leading-[1.6] font-bold text-foreground lg:text-4xl">
+                    سفارش فینگر فود و رزرو مراسم در یزد
+                </h1>
+                <p className="mt-4 text-sm leading-8 text-muted-foreground">
+                    برای سفارش فینگر فود، دیزاین میز پذیرایی و هماهنگی تشریفات مراسم، از طریق واتساپ
+                    یا اینستاگرام پیام بدهید یا مستقیم تماس بگیرید. ما با کمال میل راهنمایی‌تان
+                    می‌کنیم.
+                </p>
+            </header>
 
-                        return item.href ? (
-                            <Link
-                                key={item.label}
-                                href={item.href}
-                                target={item.href.startsWith("http") ? "_blank" : undefined}
-                                rel={
-                                    item.href.startsWith("http") ? "noopener noreferrer" : undefined
-                                }
-                                className="flex items-center gap-3 rounded-xl border border-border/60 p-4 transition-colors hover:bg-accent"
-                            >
-                                {content}
-                            </Link>
-                        ) : (
-                            <div
-                                key={item.label}
-                                className="flex items-center gap-3 rounded-xl border border-border/60 p-4"
-                            >
-                                {content}
+            {/* Contact channels */}
+            <section className="mt-10 grid gap-3 sm:grid-cols-2">
+                {CONTACT_CARDS.map((item) => {
+                    const Icon = item.icon
+                    const content = (
+                        <>
+                            <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                <Icon className="size-[1.15rem]" />
                             </div>
-                        )
-                    })}
-                </div>
+                            <div className="flex flex-col gap-0.5">
+                                <span className="text-xs font-medium text-muted-foreground">
+                                    {item.label}
+                                </span>
+                                <span className="text-sm font-medium text-foreground">
+                                    {item.value}
+                                </span>
+                            </div>
+                        </>
+                    )
 
-                {/* Social links */}
-                <div className="mt-14 sm:mt-20">
-                    <h2 className="text-lg font-bold text-foreground">شبکه‌های اجتماعی</h2>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                        تازه‌ترین محصولات و اخبار را اینجا دنبال کنید.
+                    return item.href ? (
+                        <a
+                            key={item.label}
+                            href={item.href}
+                            target={item.external ? "_blank" : undefined}
+                            rel={item.external ? "noopener noreferrer" : undefined}
+                            className="flex items-center gap-3 rounded-xl border border-border/60 bg-card p-4 transition-colors hover:border-primary/40"
+                        >
+                            {content}
+                        </a>
+                    ) : (
+                        <div
+                            key={item.label}
+                            className="flex items-center gap-3 rounded-xl border border-border/60 bg-card p-4"
+                        >
+                            {content}
+                        </div>
+                    )
+                })}
+            </section>
+
+            {/* Ordering band */}
+            <section className="mt-14">
+                <div className="rounded-2xl border border-primary/20 bg-primary/5 p-8 lg:p-12">
+                    <h2 className="text-lg font-bold text-foreground lg:text-2xl">
+                        سفارش و هماهنگی، فقط با یک پیام
+                    </h2>
+                    <p className="mt-3 max-w-xl text-xs leading-8 text-muted-foreground lg:text-sm">
+                        روش سفارش در {siteConfig.name} ساده است: منوی مورد نظرتان را انتخاب کنید، از
+                        طریق واتساپ یا دایرکت اینستاگرام پیام بدهید و هماهنگی‌های مراسم را با «
+                        {siteConfig.owner}» نهایی کنید.
                     </p>
-
-                    <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                        {SOCIAL_LINKS.map((item) => {
-                            const Icon = item.icon
-                            return (
-                                <Link
-                                    key={item.label}
-                                    href={item.href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-3 rounded-xl bg-accent px-4 py-4 transition-colors hover:bg-accent/70"
-                                >
-                                    <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-background">
-                                        <Icon className="size-[1.15rem] text-foreground" />
-                                    </div>
-                                    <div className="flex flex-col gap-0.5">
-                                        <span className="text-sm font-medium text-foreground">
-                                            {item.label}
-                                        </span>
-                                        <span className="text-xs text-muted-foreground">
-                                            {item.handle}
-                                        </span>
-                                    </div>
-                                </Link>
-                            )
-                        })}
+                    <OrderActions size="lg" className="mt-7" />
+                    <div className="mt-6">
+                        <PhoneButton size="md" className="px-0" />
                     </div>
                 </div>
-            </div>
-        </main>
+            </section>
+        </PageContainer>
     )
 }

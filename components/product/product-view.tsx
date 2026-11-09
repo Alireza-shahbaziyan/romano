@@ -9,26 +9,28 @@ import {
     ChevronDown,
     ChevronLeft,
     ChevronRight,
-    Lock,
-    Minus,
-    Plus,
-    RotateCcw,
-    ShieldCheck,
-    Truck,
+    Package,
     X,
     ZoomIn,
 } from "lucide-react"
-import { cn, formatPrice } from "@/lib/utils"
-import type { ProductDetail } from "@/types/product"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+import type { ProductImage } from "@/types/product"
+import type { ProductViewData } from "@/lib/product-data"
 import { Separator } from "@/components/ui/separator"
-import { ButtonGroup } from "@/components/ui/button-group"
-import { useCart } from "@/hooks/use-cart"
-import { useAuth } from "@/hooks/use-auth"
-import SizeGuide from "./size-guide"
+import { OrderActions, PhoneButton } from "@/components/order/order-actions"
+import { siteConfig } from "@/lib/site"
+import { TableSettingIcon, SparkleIcon, WhatsAppIcon } from "@/components/layout/home-icons"
+
+// ---------------------------------------------------------------------------
+// ProductView — the interactive part of a product page: image gallery with
+// lightbox, the product story, and the direct-ordering panel.
+//
+// Orders happen through WhatsApp / Instagram / phone — there are no
+// prices, stock counters, sizes, or cart controls anywhere on this page.
+// ---------------------------------------------------------------------------
 
 type Props = {
-    product: ProductDetail
+    product: ProductViewData
 }
 
 export default function ProductView({ product }: Props) {
@@ -46,95 +48,23 @@ export default function ProductView({ product }: Props) {
                   },
               ]
 
-    const sortedVariants = [...product.variants].sort()
-
-    const [selectedVariantId, setSelectedVariantId] = useState<number | null>(
-        sortedVariants.find((v) => v.is_active && v.stock > 0)?.id ?? null
-    )
-    const [quantity, setQuantity] = useState(1)
     const [activeImageIndex, setActiveImageIndex] = useState(0)
     const [zoomedIndex, setZoomedIndex] = useState<number | null>(null)
-    const [addToCartError, setAddToCartError] = useState<string | null>(null)
-
-    const selectedVariant = sortedVariants.find((v) => v.id === selectedVariantId) ?? null
-    const productHasStock = sortedVariants.some((v) => v.stock > 0 && v.is_active)
-
-    const displayPrice = selectedVariant?.price ?? sortedVariants[0]?.price ?? 0
-    const comparePrice = selectedVariant?.compare_price ?? sortedVariants[0]?.compare_price ?? null
-    const discountPercent =
-        comparePrice && comparePrice > displayPrice
-            ? Math.round(((comparePrice - displayPrice) / comparePrice) * 100)
-            : null
-
-    const { addItem, getItemQuantity, isPending, itemCount } = useCart()
     const router = useTransitionRouter()
-    const { user, checkingSession, openLogin } = useAuth()
-
-    // The cart is managed server-side, so "how many can I add" has to account
-    // for whatever quantity of this exact variant is already in the cart.
-    const quantityInCart = selectedVariant ? getItemQuantity(selectedVariant.sku) : 0
-    const availableToAdd = selectedVariant ? Math.max(0, selectedVariant.stock - quantityInCart) : 0
-    const isVariantPending = selectedVariant ? isPending(selectedVariant.sku) : false
-    const canAddToCart =
-        selectedVariant !== null &&
-        selectedVariant.is_active &&
-        availableToAdd > 0 &&
-        !isVariantPending
-
-    // Reset the quantity selector whenever the chosen variant (or its
-    // available stock) changes, so a leftover value can't sneak past the
-    // new variant's limit.
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setAddToCartError(null)
-        setQuantity(1)
-    }, [selectedVariantId, availableToAdd])
-
-    const handleAddToCart = async () => {
-        if (!selectedVariant || isVariantPending) return
-
-        const quantityToAdd = Math.min(quantity, availableToAdd)
-        if (quantityToAdd <= 0) {
-            setAddToCartError("موجودی این سایز کافی نیست")
-            return
-        }
-
-        setAddToCartError(null)
-        try {
-            await addItem(selectedVariant.sku, quantityToAdd)
-            setQuantity(1)
-        } catch {
-            setAddToCartError("افزودن به سبد خرید با خطا مواجه شد، دوباره تلاش کنید")
-        }
-    }
-
-    const handleGoToCheckout = () => {
-        // Not signed in: open the login dialog and resume the navigation to
-        // checkout automatically the moment login succeeds.
-        if (!user) {
-            openLogin(() => router.push("/checkout"))
-            return
-        }
-        router.push("/checkout")
-    }
-
-    const primaryCollection = product.collections[0]
 
     const handleBack = () => {
         // router.back() reuses the browser's history entry for the previous
         // page, which is what lets Next.js restore its scroll position.
-        // Pushing to a fixed URL (e.g. "/p") would always land at the top.
         if (typeof window !== "undefined" && window.history.length > 1) {
             router.back()
         } else {
-            // No page to go back to (e.g. opened this product link directly) —
-            // fall back to the shop instead of leaving the site.
-            router.push("/p")
+            // No page to go back to (e.g. opened this product link directly).
+            router.push("/products")
         }
     }
 
     return (
-        <div dir="rtl" className="">
+        <div>
             {/* Back */}
             <button
                 type="button"
@@ -142,14 +72,14 @@ export default function ProductView({ product }: Props) {
                 className="mb-6 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground lg:mb-8"
             >
                 <ArrowRight className="size-3.5" />
-                برگشت
+                بازگشت
             </button>
 
-            {/* Gallery + buy box ---------------------------------------------- */}
+            {/* Gallery + ordering panel ------------------------------------- */}
             <div
                 className={cn(
                     "grid grid-cols-1 gap-6 lg:items-start lg:gap-8 xl:gap-10",
-                    images.length > 1 ? "lg:grid-cols-[64px_1fr_400px]" : "lg:grid-cols-[1fr_400px]"
+                    images.length > 1 ? "lg:grid-cols-[64px_1fr_380px]" : "lg:grid-cols-[1fr_380px]"
                 )}
             >
                 {/* Thumbnail rail — desktop only */}
@@ -161,7 +91,6 @@ export default function ProductView({ product }: Props) {
                                 img={img}
                                 index={i}
                                 active={i === activeImageIndex}
-                                hasStock={productHasStock}
                                 onSelect={() => setActiveImageIndex(i)}
                                 className="h-16 w-16"
                             />
@@ -171,35 +100,17 @@ export default function ProductView({ product }: Props) {
 
                 {/* Main image */}
                 <div className="min-w-0 lg:sticky lg:top-24">
-                    <div className="relative aspect-4/5 w-full overflow-hidden rounded-2xl bg-muted">
+                    <div className="relative aspect-4/5 w-full overflow-hidden rounded-2xl bg-accent">
                         <button
                             onClick={() => setZoomedIndex(activeImageIndex)}
                             aria-label="نمایش تصویر در سایز کامل"
                             className="group absolute inset-0 h-full w-full"
                         >
-                            <MainImage
-                                image={images[activeImageIndex] ?? images[0]}
-                                hasStock={productHasStock}
-                                isFirst={activeImageIndex === 0}
-                            />
+                            <MainImage image={images[activeImageIndex] ?? images[0]} isFirst />
                             <div className="absolute bottom-3 left-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-background/85 text-foreground opacity-0 backdrop-blur-md transition-all duration-300 group-hover:opacity-100">
                                 <ZoomIn className="h-4 w-4" />
                             </div>
                         </button>
-
-                        {!productHasStock && (
-                            <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/30">
-                                <div
-                                    className="flex flex-col items-center gap-1.5 text-white"
-                                    style={{
-                                        textShadow: `0 1px 2px rgba(0,0,0,.9), 0 0 8px rgba(0,0,0,.8), 0 0 16px rgba(0,0,0,.5)`,
-                                    }}
-                                >
-                                    <Lock className="h-8 w-8" strokeWidth={1.8} />
-                                    <p className="text-sm font-medium tracking-wide">ناموجود</p>
-                                </div>
-                            </div>
-                        )}
                     </div>
 
                     {/* Thumbnails — mobile only */}
@@ -211,7 +122,6 @@ export default function ProductView({ product }: Props) {
                                     img={img}
                                     index={i}
                                     active={i === activeImageIndex}
-                                    hasStock={productHasStock}
                                     onSelect={() => setActiveImageIndex(i)}
                                     className="h-16 w-14 shrink-0"
                                 />
@@ -220,198 +130,74 @@ export default function ProductView({ product }: Props) {
                     )}
                 </div>
 
-                {/* Buy box */}
+                {/* Info + ordering panel */}
                 <div className="flex flex-col gap-6 lg:sticky lg:top-24">
                     <div>
-                        {primaryCollection && (
-                            <span className="mb-2 inline-block text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-                                {primaryCollection.title}
-                            </span>
+                        {(product.category?.title || product.collections?.length > 0) && (
+                            <p className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium text-muted-foreground">
+                                {product.category?.title && <span>{product.category.title}</span>}
+                                {product.collections?.map((collection) => (
+                                    <span key={collection.slug}>
+                                        {product.category?.title && (
+                                            <span aria-hidden className="ml-2 text-border">
+                                                /
+                                            </span>
+                                        )}
+                                        {collection.title}
+                                    </span>
+                                ))}
+                            </p>
                         )}
-                        <h1 className="text-[26px] leading-[1.4] font-bold tracking-tight text-primary uppercase lg:text-[30px]">
+                        <h1 className="text-[26px] leading-[1.6] font-bold text-foreground lg:text-[30px]">
                             {product.title}
                         </h1>
                         {product.short_description && (
-                            <p className="mt-2.5 text-[13px] leading-relaxed text-muted-foreground">
+                            <p className="mt-2.5 text-[13px] leading-8 text-muted-foreground">
                                 {product.short_description}
                             </p>
                         )}
                     </div>
 
-                    <div className="flex items-baseline gap-2.5">
-                        <span className="text-2xl font-bold">
-                            {formatPrice(displayPrice)} تومان
-                        </span>
-                        {comparePrice && comparePrice > displayPrice && (
-                            <>
-                                <span className="text-[12px] text-muted-foreground line-through">
-                                    {formatPrice(comparePrice)}
-                                </span>
-                                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                                    {discountPercent}٪-
-                                </span>
-                            </>
-                        )}
-                    </div>
+                    <OrderPanel productName={product.title} />
 
-                    <Separator />
-
-                    {sortedVariants.length > 0 && (
-                        <div>
-                            <div className="mb-2.5 flex space-x-2 text-xs font-medium tracking-wide uppercase">
-                                <div>سایز</div>
-                                <Separator orientation="vertical" />
-                                <SizeGuide variants={sortedVariants} />
-                            </div>
-
-                            <ButtonGroup>
-                                {sortedVariants.map((variant) => {
-                                    const disabled = !variant.is_active || variant.stock <= 0
-                                    const active = variant.id === selectedVariantId
-                                    return (
-                                        <Button
-                                            key={variant.id}
-                                            disabled={disabled}
-                                            size={"icon"}
-                                            variant={"secondary"}
-                                            onClick={() => setSelectedVariantId(variant.id)}
-                                            className={cn(
-                                                "font-inter relative flex items-center justify-center border text-xs font-semibold transition active:scale-[0.96]",
-                                                active
-                                                    ? "bg-primary text-background hover:bg-primary dark:text-background"
-                                                    : "bg-background text-foreground hover:bg-background",
-                                                disabled &&
-                                                    "cursor-not-allowed border-border/60 bg-muted/60 text-muted-foreground line-through opacity-60"
-                                            )}
-                                        >
-                                            {variant.size.label}
-                                        </Button>
-                                    )
-                                })}
-                            </ButtonGroup>
-                        </div>
-                    )}
-
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="flex items-center rounded-lg border border-border bg-background">
-                                <Button
-                                    variant={"ghost"}
-                                    disabled={quantity <= 1}
-                                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                                    className="ghost flex w-9 items-center justify-center text-muted-foreground active:scale-90 disabled:opacity-40"
-                                    aria-label="کاهش تعداد"
-                                >
-                                    <Minus className="h-3.5 w-3.5" />
-                                </Button>
-                                <span className="w-5 text-center text-[12px] font-bold text-foreground tabular-nums">
-                                    {formatPrice(quantity)}
-                                </span>
-                                <Button
-                                    variant={"ghost"}
-                                    disabled={quantity >= availableToAdd}
-                                    onClick={() =>
-                                        setQuantity((q) => Math.min(availableToAdd, q + 1))
-                                    }
-                                    className="ghost flex w-9 items-center justify-center text-muted-foreground active:scale-90 disabled:opacity-40"
-                                    aria-label="افزایش تعداد"
-                                >
-                                    <Plus className="h-3.5 w-3.5" />
-                                </Button>
-                            </div>
-
-                            <Button
-                                disabled={!canAddToCart}
-                                onClick={handleAddToCart}
-                                className={cn(
-                                    "flex flex-1 items-center justify-center border px-4 font-bold transition active:scale-[0.98]",
-                                    canAddToCart
-                                        ? ""
-                                        : "cursor-not-allowed bg-muted text-muted-foreground"
-                                )}
-                            >
-                                {isVariantPending ? (
-                                    "در حال افزودن..."
-                                ) : canAddToCart ? (
-                                    "افزودن به سبد خرید"
-                                ) : (
-                                    <>
-                                        <Lock className="h-3.5 w-3.5" strokeWidth={1.8} />
-                                        {selectedVariant &&
-                                        quantityInCart > 0 &&
-                                        selectedVariant.stock > 0
-                                            ? "همه‌ی موجودی در سبد شماست"
-                                            : "ناموجود"}
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-
-                        {itemCount > 0 && (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                disabled={checkingSession}
-                                onClick={handleGoToCheckout}
-                                className="flex w-full items-center justify-center gap-2 border font-bold"
-                            >
-                                رفتن به تسویه‌حساب
-                                <ChevronLeft className="h-3.5 w-3.5" />
-                            </Button>
-                        )}
-
-                        {addToCartError && (
-                            <p className="-mt-3 text-[11px] font-medium text-destructive">
-                                {addToCartError}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* Trust row */}
+                    {/* Highlights */}
                     <div className="flex flex-col gap-3 rounded-xl border border-border/60 bg-muted/25 p-4">
                         <div className="flex items-center gap-2.5 text-[11.5px] text-muted-foreground">
-                            <Truck
-                                className="h-3.5 w-3.5 shrink-0 text-primary"
-                                strokeWidth={1.8}
-                            />
-                            ارسال سریع به سراسر کشور
+                            <SparkleIcon className="size-4 shrink-0 text-primary" />
+                            تهیه‌شده با مواد اولیه تازه و باکیفیت
                         </div>
                         <div className="flex items-center gap-2.5 text-[11.5px] text-muted-foreground">
-                            <RotateCcw
-                                className="h-3.5 w-3.5 shrink-0 text-primary"
-                                strokeWidth={1.8}
-                            />
-                            ۷ روز مهلت مرجوعی و تعویض
+                            <TableSettingIcon className="size-4 shrink-0 text-primary" />
+                            امکان دیزاین میز پذیرایی و طراحی VIP مراسم
                         </div>
                         <div className="flex items-center gap-2.5 text-[11.5px] text-muted-foreground">
-                            <ShieldCheck
-                                className="h-3.5 w-3.5 shrink-0 text-primary"
-                                strokeWidth={1.8}
-                            />
-                            پرداخت امن و تضمین اصالت کالا
+                            <WhatsAppIcon className="size-4 shrink-0 text-primary" />
+                            هماهنگی و سفارش سریع از طریق واتساپ
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Details accordion ----------------------------------------------- */}
+            {/* Details -------------------------------------------------------- */}
             <div className="mx-auto mt-16 max-w-2xl lg:mt-24">
                 {product.description && (
                     <AccordionSection title="توضیحات محصول" defaultOpen>
-                        <p className="text-[12.5px] leading-7 whitespace-pre-line text-foreground">
+                        <p className="text-[12.5px] leading-8 whitespace-pre-line text-foreground">
                             {product.description}
                         </p>
                     </AccordionSection>
                 )}
-                <AccordionSection title="ارسال و مرجوعی">
-                    <p className="text-[12.5px] leading-7 text-muted-foreground">
-                        سفارش شما در کمتر از ۲۴ ساعت آماده و ارسال می‌شه و تا ۷ روز بعد از تحویل،
-                        امکان مرجوعی یا تعویض داری.{" "}
-                        <span className="text-foreground underline underline-offset-2">
-                            جزئیات کامل رو اینجا بخون
-                        </span>
-                        .
-                    </p>
+                <AccordionSection title="نحوه سفارش" defaultOpen={!product.description}>
+                    <ol className="flex flex-col gap-2.5 text-[12.5px] leading-8 text-muted-foreground">
+                        <li>۱. فینگر فود مورد نظرتان را از منو انتخاب کنید.</li>
+                        <li>
+                            ۲. از طریق واتساپ یا دایرکت اینستاگرام پیام بدهید یا با شماره{" "}
+                            <span className="font-medium text-foreground">{siteConfig.phone}</span>{" "}
+                            تماس بگیرید.
+                        </li>
+                        <li>۳. منو، تعداد و زمان مراسم با هماهنگی شما نهایی می‌شود.</li>
+                        <li>۴. سفارش شما تازه آماده و در مراسم‌تان سرو می‌شود.</li>
+                    </ol>
                 </AccordionSection>
             </div>
 
@@ -421,6 +207,28 @@ export default function ProductView({ product }: Props) {
                 onClose={() => setZoomedIndex(null)}
                 onNavigate={setZoomedIndex}
             />
+        </div>
+    )
+}
+
+// ---------------------------------------------------------------------------
+// The ordering panel — WhatsApp (with a contextual, product-specific
+// message), Instagram Direct, and the business phone number.
+// ---------------------------------------------------------------------------
+function OrderPanel({ productName }: { productName: string }) {
+    return (
+        <div className="rounded-2xl border border-primary/25 bg-primary/5 p-5">
+            <p className="text-sm font-bold text-foreground">سفارش «{productName}»</p>
+            <p className="mt-1.5 text-[11.5px] leading-7 text-muted-foreground">
+                برای سفارش، هماهنگی منو و رزرو زمان مراسم، همین حالا از واتساپ یا اینستاگرام پیام
+                بدهید. پاسخ‌گویی سریع، هر روز هفته.
+            </p>
+            <OrderActions productName={productName} size="md" className="mt-4" />
+            <Separator className="my-4" />
+            <div className="flex items-center justify-between gap-3">
+                <span className="text-[11px] text-muted-foreground">تماس مستقیم</span>
+                <PhoneButton size="sm" className="px-0" />
+            </div>
         </div>
     )
 }
@@ -468,15 +276,7 @@ function AccordionSection({
 }
 
 // ---------------------------------------------------------------------------
-function MainImage({
-    image,
-    hasStock,
-    isFirst = false,
-}: {
-    image: ProductDetail["images"][number]
-    hasStock: boolean
-    isFirst?: boolean
-}) {
+function MainImage({ image, isFirst = false }: { image: ProductImage; isFirst?: boolean }) {
     return (
         <>
             {image?.image && (
@@ -489,11 +289,13 @@ function MainImage({
                     priority={isFirst}
                     loading={isFirst ? undefined : "eager"}
                     draggable={false}
-                    className={cn(
-                        "object-cover select-none",
-                        !hasStock && "blur-sm brightness-75 grayscale"
-                    )}
+                    className="object-cover select-none"
                 />
+            )}
+            {!image?.image && (
+                <div className="flex h-full w-full items-center justify-center">
+                    <Package className="size-10 text-muted-foreground" />
+                </div>
             )}
         </>
     )
@@ -503,14 +305,12 @@ function Thumbnail({
     img,
     index,
     active,
-    hasStock,
     onSelect,
     className,
 }: {
-    img: ProductDetail["images"][number]
+    img: ProductImage
     index: number
     active: boolean
-    hasStock: boolean
     onSelect: () => void
     className?: string
 }) {
@@ -520,7 +320,7 @@ function Thumbnail({
             aria-label={`نمایش تصویر ${index + 1}`}
             aria-current={active}
             className={cn(
-                "relative shrink-0 overflow-hidden rounded-lg border bg-muted transition",
+                "relative shrink-0 overflow-hidden rounded-lg border bg-accent transition",
                 active ? "border-primary" : "border-border/60 opacity-70 hover:opacity-100",
                 className
             )}
@@ -533,7 +333,7 @@ function Thumbnail({
                     sizes="64px"
                     quality={60}
                     draggable={false}
-                    className={cn("object-cover select-none", !hasStock && "grayscale")}
+                    className="object-cover select-none"
                 />
             )}
         </button>
@@ -541,7 +341,7 @@ function Thumbnail({
 }
 
 // ---------------------------------------------------------------------------
-// Lightbox — unchanged from before.
+// Lightbox — full-screen gallery with keyboard + swipe navigation.
 // ---------------------------------------------------------------------------
 function Lightbox({
     images,
@@ -549,7 +349,7 @@ function Lightbox({
     onClose,
     onNavigate,
 }: {
-    images: ProductDetail["images"]
+    images: ProductImage[]
     index: number | null
     onClose: () => void
     onNavigate: (index: number) => void
@@ -610,7 +410,7 @@ function Lightbox({
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={onClose}
-                    className="fixed inset-0 z-99999 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+                    className="fixed inset-0 z-99999 flex items-center justify-center bg-black/85 backdrop-blur-sm"
                 >
                     <button
                         onClick={onClose}

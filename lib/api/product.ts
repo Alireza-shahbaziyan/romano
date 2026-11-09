@@ -2,30 +2,33 @@ import request from "@/lib/api/client"
 import { ProductList, ProductDetail } from "@/types/product"
 
 // ---------------------------------------------------------------------------
-// Filter params matching the /api/products/ query schema:
+// Filter params matching the /api/products/ query schema (see API.yaml):
+//   category     -> category slug
 //   collections  -> comma-separated list of collection slugs
 //   featured     -> boolean
 //   ordering     -> field name for DRF-style ordering (e.g. "-created_at")
-//   page / page_size -> pagination (used internally for infinite loading)
+//   page / page_size -> pagination
 //   search       -> free-text search term
 // ---------------------------------------------------------------------------
+
+export type ProductOrdering = "created_at" | "-created_at" | "title" | "-title"
+
 export interface ProductQueryParams {
+    category?: string
     collections?: string[]
     featured?: boolean
-    ordering?: string
+    ordering?: ProductOrdering
     page?: number
     page_size?: number
     search?: string
-    in_stock?: boolean
 }
-
-// The four sort options exposed in the UI. Adjust the DRF field names below
-// ("price" / "created_at") if your backend serializer uses different ones.
-export type ProductOrdering = "-created_at" | "created_at" | "price" | "-price"
 
 function buildProductsQuery(params: ProductQueryParams = {}): string {
     const qs = new URLSearchParams()
 
+    if (params.category) {
+        qs.set("category", params.category)
+    }
     if (params.collections && params.collections.length > 0) {
         qs.set("collections", params.collections.join(","))
     }
@@ -44,9 +47,6 @@ function buildProductsQuery(params: ProductQueryParams = {}): string {
     if (params.search && params.search.trim().length > 0) {
         qs.set("search", params.search.trim())
     }
-    if (typeof params.in_stock === "boolean") {
-        qs.set("in_stock", String(params.in_stock))
-    }
 
     const query = qs.toString()
     return query ? `?${query}` : ""
@@ -54,14 +54,8 @@ function buildProductsQuery(params: ProductQueryParams = {}): string {
 
 /**
  * Generic, filterable products fetch. Pass an AbortSignal from the caller
- * (e.g. a client component doing live filtering) so in-flight requests can
- * be cancelled when the filters change again before the previous request
- * resolves.
- *
- * NOTE: this assumes `request()` forwards a `signal` option straight into
- * its underlying fetch call. If your `@/lib/api/client` wrapper doesn't
- * accept/forward `signal` yet, add that passthrough there — otherwise stale
- * responses can't be cancelled and may race with newer ones.
+ * so in-flight requests can be cancelled when the filters change again
+ * before the previous request resolves.
  */
 export function getProducts(
     params: ProductQueryParams = {},
@@ -73,14 +67,13 @@ export function getProducts(
     })
 }
 
-// Kept for backward compatibility with existing call sites; both are now
-// thin wrappers around getProducts().
-export function getLatestProducts(): Promise<ProductList> {
-    return getProducts()
+// Thin, readable wrappers for the two most common call sites.
+export function getLatestProducts(pageSize?: number): Promise<ProductList> {
+    return getProducts({ ordering: "-created_at", page_size: pageSize })
 }
 
-export function getFeaturedProducts(): Promise<ProductList> {
-    return getProducts({ featured: true })
+export function getFeaturedProducts(pageSize?: number): Promise<ProductList> {
+    return getProducts({ featured: true, page_size: pageSize })
 }
 
 export function getProduct(slug: string): Promise<ProductDetail | null> {

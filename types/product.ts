@@ -1,4 +1,6 @@
-import { Audio } from "./audio"
+import type { CategoryMinimal } from "./category"
+import type { CollectionListItem } from "./collection"
+import type { BreadcrumbLd, JsonLd, MetaTag } from "./seo"
 
 export type ProductList = {
     count: number
@@ -22,7 +24,7 @@ export type ProductListItem = {
 export type ProductImage = {
     id: number
     image: string
-    media_kind: "gallery" | string
+    media_kind: "gallery" | "size_chart" | "fabric_guide" | "design" | string
     caption: string
     alt_text: string
     is_primary: boolean
@@ -51,17 +53,7 @@ export type ProductVariant = {
     is_active: boolean
 }
 
-export type ProductStatus = "draft" | "published" | "archived"
-
-export interface ProductCollection {
-    id: number
-    title: string
-    slug: string
-    short_description: string
-    image: string
-    is_active: boolean
-    parent: number | null
-}
+export type ProductStatus = "draft" | "active" | "archived"
 
 export interface ProductDetail {
     id: number
@@ -70,13 +62,18 @@ export interface ProductDetail {
     short_description: string
     description: string
     status: ProductStatus
-    published_at: string
+    published_at: string | null
     featured: boolean
-    collections: ProductCollection[]
+    collections: CollectionListItem[]
+    category: CategoryMinimal
     images: ProductImage[]
-    audio: Audio | null
+    /** Optional audio track URL attached to the product (unused on this website). */
+    audio: string | null
     variants: ProductVariant[]
     is_in_wishlist: boolean
+    meta_tag: MetaTag
+    json_ld: JsonLd
+    breadcrumb_ld: BreadcrumbLd
     created_at: string
     updated_at: string
 }

@@ -1,243 +1,176 @@
-import type { ReactNode } from "react"
 import Image from "next/image"
 import { Link } from "next-view-transitions"
+import { Package } from "lucide-react"
 
-import { HeroImage } from "@/components/layout/hero-image"
-import {
-    ArrowIcon,
-    TruckIcon,
-    ShieldIcon,
-    RefreshIcon,
-    HeadsetIcon,
-} from "@/components/layout/home-icons"
-import { PostCard } from "@/components/blog/post-card"
+import { Hero } from "@/components/home/hero"
+import { AboutPreview, ContactBand, Services, ValueStrip } from "@/components/home/sections"
+import { SectionHeader } from "@/components/home/section-header"
+import { Reveal } from "@/components/layout/scroll-reveal"
 import { ProductCard } from "@/components/product/product-card"
-import { cn } from "@/lib/utils"
-import { getLatestProducts, getFeaturedProducts } from "@/lib/api/product"
-import { getLatestPosts } from "@/lib/api/post"
+import { PostCard } from "@/components/blog/post-card"
+import { ArrowIcon } from "@/components/layout/home-icons"
+import { getFeaturedProducts, getLatestProducts } from "@/lib/api/product"
+import { getCategories } from "@/lib/api/category"
 import { getCollections } from "@/lib/api/collection"
-import type { ProductListItem } from "@/types/product"
-import type { LatestPost } from "@/hooks/use-posts"
+import { getCustomerGallery } from "@/lib/api/gallery"
+import { getLatestPosts } from "@/lib/api/post"
+import { toProductCardData } from "@/lib/product-data"
+import { siteConfig, siteDescription, siteKeywords } from "@/lib/site"
+import type { CategoryListItem } from "@/types/category"
 import type { CollectionListItem } from "@/types/collection"
+import type { CustomerGalleryItem } from "@/types/gallery"
+import type { PostListItem } from "@/types/post"
+import type { ProductListItem } from "@/types/product"
 
 export const dynamic = "force-dynamic"
 
+// ---------------------------------------------------------------------------
+// Homepage — «رومانو فینگر | Romano Finger».
+//
+// Every data-driven section renders straight from the backend (products,
+// categories, collections, customer gallery, blog) and hides itself
+// gracefully when the API has nothing to show — no fabricated content.
+// The marketing sections (services, about, contact) live in
+// components/home/sections.tsx.
+// ---------------------------------------------------------------------------
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
+
 export default async function Home() {
-    const [latestProducts, featuredProducts, latestPosts, collections] = await Promise.all([
-        getLatestProducts(),
-        getFeaturedProducts(),
-        getLatestPosts(),
-        getCollections(),
+    const [featured, latest, categories, collections, gallery, posts] = await Promise.all([
+        getFeaturedProducts(8).catch(() => null),
+        getLatestProducts(8).catch(() => null),
+        getCategories(12).catch(() => null),
+        getCollections().catch(() => null),
+        getCustomerGallery(8).catch(() => null),
+        getLatestPosts(1, 4).catch(() => null),
     ])
 
+    // Featured products are the lead taste of the menu; when nothing is
+    // marked featured yet, fall back to the newest real products.
+    const featuredItems = featured?.results?.length ? featured.results : (latest?.results ?? [])
+    const categoryItems = categories?.results ?? []
+    const collectionItems = collections?.results ?? []
+    const galleryItems = gallery?.results ?? []
+    const postItems = posts?.results ?? []
+
+    const heroImage = pickHeroImage(featuredItems, collectionItems)
+
+    // Structured data for local SEO (فینگر فود یزد / رومانو فینگر).
+    const localBusinessLd = {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        name: siteConfig.name,
+        alternateName: siteConfig.nameEn,
+        description: siteDescription,
+        slogan: siteConfig.slogan.replace("✨ ", ""),
+        founder: { "@type": "Person", name: siteConfig.owner },
+        telephone: `+${siteConfig.whatsappUrl.replace("https://wa.me/", "")}`,
+        address: {
+            "@type": "PostalAddress",
+            addressLocality: siteConfig.city,
+            addressCountry: "IR",
+        },
+        areaServed: siteConfig.location,
+        sameAs: [siteConfig.instagramUrl],
+        url: SITE_URL,
+        image: heroImage?.src ?? undefined,
+        keywords: siteKeywords.join("، "),
+    }
+
     return (
-        <main dir="rtl" className="relative w-full overflow-x-hidden">
-            <Hero />
-            <BrandValues />
-            <CollectionSpotlight items={collections.results} />
-            <FeaturedSection items={featuredProducts.results.slice(0, 4)} />
-            <CollectionsSection items={collections.results.slice(2)} />
-            <RecentProductsSection items={latestProducts.results.slice(0, 4)} />
-            <PostsSection items={latestPosts.results.slice(0, 5)} />
+        <main className="relative w-full overflow-x-hidden pb-20 lg:pb-28">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessLd) }}
+            />
+
+            <Hero image={heroImage} />
+            <Reveal>
+                <ValueStrip />
+            </Reveal>
+            <Reveal>
+                <FeaturedProducts items={featuredItems.slice(0, 4)} />
+            </Reveal>
+            <Reveal>
+                <CategoriesSection items={categoryItems} />
+            </Reveal>
+            <Reveal>
+                <VipShowcase items={collectionItems} />
+            </Reveal>
+            <Reveal>
+                <Services />
+            </Reveal>
+            <Reveal>
+                <PostsSection items={postItems.slice(0, 3)} />
+            </Reveal>
+            <Reveal>
+                <GallerySection items={galleryItems} />
+            </Reveal>
+            <Reveal>
+                <AboutPreview />
+            </Reveal>
+            <Reveal>
+                <ContactBand />
+            </Reveal>
         </main>
     )
 }
 
 // ---------------------------------------------------------------------------
-// Shared section header — eyebrow + title + optional "view all" link. Sized
-// and spaced for mobile by default; `lg:` variants switch it to the desktop
-// treatment (bigger type, bottom rule instead of margin, hover-underline
-// link) at the same breakpoint the old split components used.
+// Hero imagery — the first featured product's photo, or the first
+// collection photo as a fallback. Purely real backend assets.
 // ---------------------------------------------------------------------------
-function SectionHeader({
-    eyebrow,
-    title,
-    href,
-}: {
-    eyebrow: string
-    title: string
-    href?: string
-}) {
-    return (
-        <div className="mb-4 flex items-end justify-between px-5 lg:mb-0 lg:gap-8 lg:border-b lg:border-border lg:px-0 lg:pb-5">
-            <div>
-                <p className="text-[10px] font-medium text-muted-foreground lg:text-[11px]">
-                    {eyebrow}
-                </p>
-                <h2 className="mt-1.5 text-lg font-bold tracking-tight text-foreground lg:mt-2 lg:text-2xl">
-                    {title}
-                </h2>
-            </div>
-            {href && (
-                <Link
-                    href={href}
-                    className="group flex shrink-0 items-center gap-1 text-xs font-medium text-muted-foreground lg:gap-2 lg:pb-1 lg:text-sm lg:text-foreground"
-                >
-                    <span className="lg:border-b lg:border-transparent lg:transition-colors lg:group-hover:border-foreground">
-                        مشاهده همه
-                    </span>
-                    <ArrowIcon className="size-3 lg:size-3.5 lg:transition-transform lg:group-hover:-translate-x-1" />
-                </Link>
-            )}
-        </div>
-    )
+function pickHeroImage(
+    products: ProductListItem[],
+    collections: CollectionListItem[]
+): { src: string; alt: string } | null {
+    const productImage = products
+        .flatMap((p) => p.images)
+        .find((img) => img.image && img.is_primary)
+
+    if (productImage) {
+        return { src: productImage.image, alt: productImage.alt_text || productImage.caption }
+    }
+
+    const anyProductImage = products.flatMap((p) => p.images).find((img) => img.image)
+    if (anyProductImage) {
+        return {
+            src: anyProductImage.image,
+            alt: anyProductImage.alt_text || anyProductImage.caption,
+        }
+    }
+
+    const collectionImage = collections.find((c) => c.image || c.image_dark)
+    if (collectionImage) {
+        return {
+            src: (collectionImage.image ?? collectionImage.image_dark) as string,
+            alt: collectionImage.title,
+        }
+    }
+
+    return null
 }
 
 // ---------------------------------------------------------------------------
-// Hero — the one section kept as two breakpoint-gated blocks instead of a
-// unified tree: the mobile hero is an image panel with overlaid copy, the
-// desktop hero is a two-column split with a stats row. Forcing these into
-// one shared structure would cost more markup than it saves.
+// Featured products — a taste of the menu; /products is the full catalog.
 // ---------------------------------------------------------------------------
-function Hero() {
+function FeaturedProducts({ items }: { items: ProductListItem[] }) {
     return (
-        <>
-            <MobileHero />
-            <DesktopHero />
-        </>
-    )
-}
-
-function MobileHero() {
-    return (
-        <section className="relative mx-5 mt-5 aspect-4/5 overflow-hidden rounded-[1.75rem] lg:hidden">
-            <div className="absolute inset-0 *:h-full *:w-full *:object-cover">
-                <HeroImage />
-            </div>
-            <div className="absolute inset-0 bg-linear-to-t from-black/75 via-black/10 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 p-6 text-neutral-50">
-                <p className="text-xs opacity-80">کالکشن جدید</p>
-                <h1 className="mt-2 text-[1.75rem] leading-tight font-bold">استایل خودت رو بساز</h1>
-                <p className="mt-2 max-w-[26ch] text-xs leading-relaxed text-neutral-200">
-                    هر تکه، روایتی از سلیقه‌ی توست.
-                </p>
-                <Link
-                    href="/p"
-                    className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-4 py-2.5 text-xs font-semibold text-neutral-900"
-                >
-                    مشاهده فروشگاه
-                </Link>
-            </div>
-        </section>
-    )
-}
-
-function DesktopHero() {
-    return (
-        <section className="mx-auto hidden max-w-295 px-8 pt-20 lg:block xl:px-10">
-            <div className="grid grid-cols-1 items-center gap-16 lg:grid-cols-2">
-                <div>
-                    <p className="text-xs text-muted-foreground">کالکشن جدید</p>
-                    <h1 className="mt-5 text-5xl leading-[1.15] font-bold tracking-tight text-foreground xl:text-[3.25rem]">
-                        استایل خودت رو بساز
-                    </h1>
-                    <p className="mt-6 max-w-md text-[15px] leading-relaxed text-muted-foreground">
-                        از انتخاب پارچه شروع می‌کنیم، فرم لباس را خودمان تعیین می‌کنیم و در نهایت با
-                        طرحی اختصاصی، چیزی می‌سازیم که شبیه لباس‌های معمول بازار نباشد.
-                    </p>
-                    <Link
-                        href="/p"
-                        className="group mt-9 inline-flex items-center gap-2.5 rounded-full bg-foreground px-7 py-3.5 text-sm font-semibold text-background transition-transform duration-300 hover:scale-[1.02]"
-                    >
-                        مشاهده فروشگاه
-                        <ArrowIcon className="size-3.5 transition-transform group-hover:-translate-x-1" />
-                    </Link>
-
-                    <dl className="mt-14 grid max-w-md grid-cols-3 gap-6 border-t border-border pt-6">
-                        <div>
-                            <dt className="text-xs text-muted-foreground">پارچه</dt>
-                            <dd className="mt-1 text-lg font-semibold text-foreground">
-                                انتخاب‌شده
-                            </dd>
-                        </div>
-                        <div>
-                            <dt className="text-xs text-muted-foreground">تولید</dt>
-                            <dd className="mt-1 text-lg font-semibold text-foreground">اختصاصی</dd>
-                        </div>
-                        <div>
-                            <dt className="text-xs text-muted-foreground">طراحی</dt>
-                            <dd className="mt-1 text-lg font-semibold text-foreground">متفاوت</dd>
-                        </div>
-                    </dl>
-                </div>
-
-                <div className="relative aspect-4/5 w-full max-w-110 justify-self-center overflow-hidden rounded-[1.75rem] lg:justify-self-end">
-                    <div className="absolute inset-0 *:h-full *:w-full *:object-cover">
-                        <HeroImage />
-                    </div>
-                    <div className="absolute inset-0 bg-linear-to-t from-black/20 via-transparent to-transparent" />
-                </div>
-            </div>
-        </section>
-    )
-}
-
-// ---------------------------------------------------------------------------
-// Brand values — a quiet trust bar: four short claims, each with a small
-// line icon. Copy is slightly more compact on mobile than desktop for a
-// couple of the claims, so those two text nodes are rendered twice and
-// toggled with lg:hidden / hidden lg:inline — everything else (icon,
-// layout, spacing) is one shared tree.
-// ---------------------------------------------------------------------------
-type ValueItem = {
-    icon: typeof TruckIcon
-    title: string
-    titleDesktop?: string
-    desc: string
-    descDesktop: string
-}
-
-function BrandValues() {
-    const items: ValueItem[] = [
-        { icon: TruckIcon, title: "ارسال سریع", desc: "سراسر کشور", descDesktop: "به سراسر کشور" },
-        {
-            icon: ShieldIcon,
-            title: "ضمانت اصالت",
-            desc: "تمام محصولات",
-            descDesktop: "روی تمام محصولات",
-        },
-        {
-            icon: RefreshIcon,
-            title: "۷ روز مهلت",
-            desc: "بازگشت آسان",
-            descDesktop: "بازگشت و تعویض آسان",
-        },
-        {
-            icon: HeadsetIcon,
-            title: "پشتیبانی",
-            titleDesktop: "پشتیبانی پاسخگو",
-            desc: "پاسخگوی همیشگی",
-            descDesktop: "هر روز هفته",
-        },
-    ]
-
-    return (
-        <section className="mt-9 px-5 lg:mx-auto lg:mt-24 lg:max-w-295 lg:px-8 xl:px-10">
+        <section className="mt-14 lg:mx-auto lg:mt-28 lg:max-w-295 lg:px-8 xl:px-10">
+            <SectionHeader eyebrow="منوی رومانو فینگر" title="فینگر فودهای ویژه" href="/products" />
             <ul
                 role="list"
-                className="grid grid-cols-2 gap-y-5 border-y border-border py-6 lg:grid-cols-4 lg:gap-y-8 lg:py-8"
+                className="grid grid-cols-2 gap-3 px-5 lg:mt-10 lg:grid-cols-4 lg:gap-6 lg:px-0"
             >
-                {items.map(({ icon: Icon, title, titleDesktop, desc, descDesktop }) => (
-                    <li key={title} className="flex items-center">
-                        <div className="mx-auto flex items-center gap-2.5 lg:gap-3">
-                            <Icon className="size-4.5 shrink-0 text-foreground lg:size-5" />
-                            <div>
-                                <p className="text-xs font-medium text-foreground lg:text-sm">
-                                    {titleDesktop ? (
-                                        <>
-                                            <span className="lg:hidden">{title}</span>
-                                            <span className="hidden lg:inline">{titleDesktop}</span>
-                                        </>
-                                    ) : (
-                                        title
-                                    )}
-                                </p>
-                                <p className="text-[11px] text-muted-foreground lg:text-xs">
-                                    <span className="lg:hidden">{desc}</span>
-                                    <span className="hidden lg:inline">{descDesktop}</span>
-                                </p>
-                            </div>
-                        </div>
+                {items.map((item, idx) => (
+                    <li key={item.slug}>
+                        <ProductCard
+                            product={toProductCardData(item)}
+                            eager={idx < 2}
+                            sizes="(max-width: 1024px) 45vw, 25vw"
+                            badgeLabel={idx === 0 ? "پیشنهاد رومانو" : undefined}
+                        />
                     </li>
                 ))}
             </ul>
@@ -246,16 +179,82 @@ function BrandValues() {
 }
 
 // ---------------------------------------------------------------------------
-// Collection spotlight — replaces the old brand-story copy block. Two real
-// collection photos instead of claims: one wide, one narrow, each linking
-// straight into that collection.
+// Categories — the popular product categories, straight from the API.
 // ---------------------------------------------------------------------------
-function CollectionSpotlight({ items }: { items: CollectionListItem[] }) {
+function CategoriesSection({ items }: { items: CategoryListItem[] }) {
+    if (items.length === 0) return null
+
+    return (
+        <section className="mt-14 lg:mx-auto lg:mt-28 lg:max-w-295 lg:px-8 xl:px-10">
+            <SectionHeader
+                eyebrow="دسته‌بندی‌ها"
+                title="محبوب‌ترین دسته‌های فینگر فود"
+                href="/products"
+            />
+            <ul
+                role="list"
+                className="flex snap-x snap-mandatory scroll-px-5 gap-3 overflow-x-auto overscroll-x-contain px-5 pb-1 lg:mt-10 lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden"
+            >
+                {items.map((category, idx) => (
+                    <li key={category.slug} className="w-40 shrink-0 snap-start lg:w-auto">
+                        <CategoryCard item={category} eager={idx < 4} />
+                    </li>
+                ))}
+            </ul>
+        </section>
+    )
+}
+
+function CategoryCard({ item, eager }: { item: CategoryListItem; eager: boolean }) {
+    const image = item.image ?? item.image_dark
+
+    return (
+        <Link
+            href={`/products?category=${item.slug}`}
+            className="group block overflow-hidden rounded-xl border border-border/60 bg-card transition-colors hover:border-primary/40"
+        >
+            <div className="relative aspect-4/3 w-full overflow-hidden bg-accent">
+                {image ? (
+                    <Image
+                        src={image}
+                        alt={item.title}
+                        fill
+                        sizes="(max-width: 1024px) 160px, 25vw"
+                        className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                        loading={eager ? "eager" : "lazy"}
+                    />
+                ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                        <Package className="size-7 text-muted-foreground" />
+                    </div>
+                )}
+            </div>
+            <div className="p-3.5">
+                <p className="line-clamp-1 text-sm font-semibold text-foreground">{item.title}</p>
+                {item.short_description && (
+                    <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                        {item.short_description}
+                    </p>
+                )}
+            </div>
+        </Link>
+    )
+}
+
+// ---------------------------------------------------------------------------
+// VIP showcase — collection photography as an editorial spotlight:
+// one wide tile and one narrow tile, linking into the catalog.
+// ---------------------------------------------------------------------------
+function VipShowcase({ items }: { items: CollectionListItem[] }) {
     const [primary, secondary] = items
     if (!primary) return null
 
     return (
-        <section className="mt-10 lg:mx-auto lg:mt-28 lg:max-w-295 lg:px-8 xl:px-10">
+        <section className="mt-14 lg:mx-auto lg:mt-28 lg:max-w-295 lg:px-8 xl:px-10">
+            <SectionHeader
+                eyebrow="دیزاین و دکور VIP"
+                title="دیزاین میز پذیرایی و طراحی VIP مراسم"
+            />
             <div className="grid grid-cols-1 gap-3 px-5 lg:grid-cols-[1.6fr_1fr] lg:gap-5 lg:px-0">
                 <SpotlightTile item={primary} eager aspect="aspect-4/5 lg:aspect-16/10" />
                 {secondary && (
@@ -275,12 +274,13 @@ function SpotlightTile({
     eager?: boolean
     aspect: string
 }) {
-    if (!item.image && !item.image_dark) return null
+    const hasImage = Boolean(item.image || item.image_dark)
+    if (!hasImage) return null
 
     return (
         <Link
-            href={`/p/?collection=${item.slug}`}
-            className={cn("group relative block overflow-hidden rounded-2xl", aspect)}
+            href={`/products?collection=${item.slug}`}
+            className={`group relative block overflow-hidden rounded-2xl ${aspect}`}
         >
             {item.image && (
                 <Image
@@ -288,10 +288,7 @@ function SpotlightTile({
                     alt={item.title}
                     fill
                     sizes="(max-width: 1024px) 100vw, 60vw"
-                    className={cn(
-                        "object-cover transition-transform duration-700 ease-out group-hover:scale-105",
-                        item.image_dark && "dark:hidden"
-                    )}
+                    className={`object-cover transition-transform duration-700 ease-out group-hover:scale-105 ${item.image_dark ? "dark:hidden" : ""}`}
                     loading={eager ? "eager" : "lazy"}
                 />
             )}
@@ -301,16 +298,20 @@ function SpotlightTile({
                     alt={item.title}
                     fill
                     sizes="(max-width: 1024px) 100vw, 60vw"
-                    className={cn(
-                        "object-cover transition-transform duration-700 ease-out group-hover:scale-105",
-                        item.image && "hidden dark:block"
-                    )}
+                    className={`object-cover transition-transform duration-700 ease-out group-hover:scale-105 ${item.image ? "hidden dark:block" : ""}`}
                     loading={eager ? "eager" : "lazy"}
                 />
             )}
             <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
             <div className="absolute inset-x-0 bottom-0 flex items-center justify-between p-4 text-neutral-50 lg:p-6">
-                <p className="text-sm font-semibold lg:text-base">{item.title}</p>
+                <div>
+                    <p className="text-sm font-semibold lg:text-base">{item.title}</p>
+                    {item.short_description && (
+                        <p className="mt-1 line-clamp-1 hidden max-w-lg text-xs text-neutral-200 lg:block">
+                            {item.short_description}
+                        </p>
+                    )}
+                </div>
                 <ArrowIcon className="size-3.5 transition-transform group-hover:-translate-x-1 lg:size-4" />
             </div>
         </Link>
@@ -318,171 +319,92 @@ function SpotlightTile({
 }
 
 // ---------------------------------------------------------------------------
-// Adaptive strip — a horizontal scroll-snap row below `lg` (the natural
-// mobile pattern for a rail), a CSS grid at `lg` and up. Shared by
-// Featured, Collections, and Posts; pass the desktop column count/gap via
-// `className`, and give each <li> `lg:w-auto lg:shrink` so it drops its
-// fixed scroll-strip width once the grid takes over.
+// Blog preview — the latest articles from the magazine.
 // ---------------------------------------------------------------------------
-function AdaptiveStrip({ children, className }: { children: ReactNode; className?: string }) {
-    return (
-        <ul
-            role="list"
-            className={cn(
-                "flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-1",
-                "scroll-px-5 scrollbar-none overscroll-x-contain [&::-webkit-scrollbar]:hidden",
-                "lg:mt-10 lg:grid lg:snap-none lg:overflow-visible lg:px-0 lg:pb-0",
-                className
-            )}
-        >
-            {children}
-        </ul>
-    )
-}
-
-// Capped at four — /p is the full catalogue, this is a taste. Item count
-// and eagerness are identical at both breakpoints; only the strip vs. grid
-// container and the tile's own sizing differ.
-function FeaturedSection({ items }: { items: ProductListItem[] }) {
+function PostsSection({ items }: { items: PostListItem[] }) {
     if (items.length === 0) return null
 
     return (
         <section className="mt-14 lg:mx-auto lg:mt-28 lg:max-w-295 lg:px-8 xl:px-10">
-            <SectionHeader eyebrow="ویترین" title="محصولات ویژه" href="/p" />
-            <AdaptiveStrip className="lg:grid-cols-4 lg:gap-6">
-                {items.map((item, idx) => (
-                    <li key={item.slug} className="w-36 shrink-0 snap-start lg:w-auto lg:shrink">
-                        <ProductCard
-                            product={item}
-                            eager={idx < 2}
-                            sizes="(max-width: 1024px) 144px, 25vw"
-                            badgeLabel={idx === 0 ? "پرفروش" : undefined}
-                        />
-                    </li>
-                ))}
-            </AdaptiveStrip>
-        </section>
-    )
-}
-
-// Collections is always a horizontal carousel — mobile *and* desktop — so
-// its height never depends on how many collections exist. Adding a 5th or
-// 10th collection just makes the row a bit longer to swipe/scroll through
-// sideways; it never pushes the next section further down the page.
-function CollectionsSection({ items }: { items: CollectionListItem[] }) {
-    if (items.length === 0) return null
-
-    const shown = items.slice(0, 10)
-
-    return (
-        <section className="mt-14 lg:mx-auto lg:mt-28 lg:max-w-295 lg:px-8 xl:px-10">
-            <SectionHeader eyebrow="دنیای استاربوی" title="کالکشن‌ها" />
+            <SectionHeader eyebrow="مجله رومانو" title="آخرین مطالب" href="/blog" />
             <ul
                 role="list"
-                className="flex snap-x snap-mandatory scroll-px-5 scrollbar-none gap-3 overflow-x-auto overscroll-x-contain px-5 pb-1 lg:mt-8 lg:gap-4 lg:px-0 [&::-webkit-scrollbar]:hidden"
+                className="grid grid-cols-1 gap-x-8 gap-y-10 px-5 sm:grid-cols-2 lg:mt-10 lg:grid-cols-3 lg:px-0"
             >
-                {shown.map((collection, idx) => (
-                    <li key={collection.slug} className="w-28 shrink-0 snap-start lg:w-44">
-                        <CollectionCard item={collection} eager={idx < 4} />
-                    </li>
-                ))}
-            </ul>
-        </section>
-    )
-}
-
-function CollectionCard({ item, eager }: { item: CollectionListItem; eager: boolean }) {
-    if (!item.image && !item.image_dark) return null
-
-    return (
-        <Link
-            href={`/p/?collection=${item.slug}`}
-            className="group relative block aspect-4/5 overflow-hidden rounded-xl"
-        >
-            {item.image && (
-                <Image
-                    src={item.image}
-                    alt={item.title}
-                    fill
-                    sizes="(max-width: 1024px) 112px, 176px"
-                    className={cn(
-                        "object-cover transition-transform duration-500 ease-out group-hover:scale-105",
-                        item.image_dark && "dark:hidden"
-                    )}
-                    loading={eager ? "eager" : "lazy"}
-                />
-            )}
-            {item.image_dark && (
-                <Image
-                    src={item.image_dark}
-                    alt={item.title}
-                    fill
-                    sizes="(max-width: 1024px) 112px, 176px"
-                    className={cn(
-                        "object-cover transition-transform duration-500 ease-out group-hover:scale-105",
-                        item.image && "hidden dark:block"
-                    )}
-                    loading={eager ? "eager" : "lazy"}
-                />
-            )}
-            <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/5 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 p-2.5 text-neutral-50 lg:p-3.5">
-                <p className="text-xs font-semibold lg:text-[13px]">{item.title}</p>
-            </div>
-        </Link>
-    )
-}
-
-// Capped at four for the same reason as Featured — a taste, not the
-// catalogue. Both breakpoints show the same four items, just a 2-column
-// grid on mobile widening to 4 columns at `lg`.
-function RecentProductsSection({ items }: { items: ProductListItem[] }) {
-    if (items.length === 0) return null
-
-    return (
-        <section className="mt-14 lg:mx-auto lg:mt-28 lg:max-w-295 lg:px-8 xl:px-10">
-            <SectionHeader eyebrow="تازه‌ترین‌ها" title="جدیدترین محصولات" href="/p" />
-            <ul
-                role="list"
-                className="grid grid-cols-2 gap-3 px-5 lg:mt-10 lg:grid-cols-4 lg:gap-6 lg:px-0"
-            >
-                {items.map((item, idx) => (
-                    <li key={item.slug}>
-                        <ProductCard
-                            product={item}
-                            eager={idx < 2}
-                            sizes="(max-width: 1024px) 45vw, 25vw"
-                        />
-                    </li>
-                ))}
-            </ul>
-        </section>
-    )
-}
-
-// Same idea as Collections: mobile's scroll strip shows up to four posts,
-// the desktop grid caps at three — the fourth is rendered but hidden at `lg`.
-function PostsSection({ items }: { items: LatestPost[] }) {
-    if (items.length === 0) return null
-
-    const posts = items.slice(0, 4)
-
-    return (
-        <section className="mt-14 mb-16 lg:mx-auto lg:mt-28 lg:mb-32 lg:max-w-295 lg:px-8 xl:px-10">
-            <SectionHeader eyebrow="مجله" title="آخرین مطالب" href="/blog" />
-            <AdaptiveStrip className="lg:grid-cols-3 lg:gap-10">
-                {posts.map((post, idx) => (
-                    <li
-                        key={post.slug}
-                        className={cn(
-                            "w-56 shrink-0 snap-start lg:w-auto lg:shrink",
-                            idx >= 3 && "lg:hidden"
-                        )}
-                    >
+                {items.map((post, idx) => (
+                    <li key={post.slug}>
                         <PostCard post={post} eager={idx < 2} />
                     </li>
                 ))}
-            </AdaptiveStrip>
+            </ul>
+        </section>
+    )
+}
+
+// ---------------------------------------------------------------------------
+// Gallery — real photos of delivered work (customer gallery API),
+// doubling as the visual showcase. Links out to Instagram.
+// ---------------------------------------------------------------------------
+function GallerySection({ items }: { items: CustomerGalleryItem[] }) {
+    if (items.length === 0) return null
+
+    return (
+        <section className="mt-14 lg:mx-auto lg:mt-28 lg:max-w-295 lg:px-8 xl:px-10">
+            <SectionHeader
+                eyebrow="نمونه کارها"
+                title="گالری رومانو فینگر"
+                href={siteConfig.instagramUrl}
+            />
+            <ul
+                role="list"
+                className="flex snap-x snap-mandatory scroll-px-5 gap-3 overflow-x-auto overscroll-x-contain px-5 pb-1 lg:mt-10 lg:grid lg:grid-cols-4 lg:grid-rows-2 lg:gap-4 lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden"
+            >
+                {items.slice(0, 8).map((item, idx) => (
+                    <li
+                        key={item.id}
+                        className={`w-56 shrink-0 snap-start lg:w-auto ${idx === 0 ? "lg:col-span-2 lg:row-span-2" : ""}`}
+                    >
+                        <a
+                            href={siteConfig.instagramUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group relative block h-full overflow-hidden rounded-xl bg-accent"
+                        >
+                            <div
+                                className={`relative w-full ${idx === 0 ? "aspect-4/5 lg:aspect-auto lg:h-full" : "aspect-4/5"}`}
+                            >
+                                <Image
+                                    src={item.image}
+                                    alt={item.caption || "نمونه کار رومانو فینگر"}
+                                    fill
+                                    sizes={
+                                        idx === 0
+                                            ? "(max-width: 1024px) 224px, 50vw"
+                                            : "(max-width: 1024px) 224px, 25vw"
+                                    }
+                                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                                    loading={idx < 4 ? "eager" : "lazy"}
+                                />
+                                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                                {(item.caption || item.customer_name) && (
+                                    <div className="absolute inset-x-0 bottom-0 p-3 text-neutral-50 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                                        {item.caption && (
+                                            <p className="line-clamp-1 text-xs font-medium">
+                                                {item.caption}
+                                            </p>
+                                        )}
+                                        {item.customer_name && (
+                                            <p className="mt-0.5 text-[10px] text-neutral-200">
+                                                {item.customer_name}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </a>
+                    </li>
+                ))}
+            </ul>
         </section>
     )
 }

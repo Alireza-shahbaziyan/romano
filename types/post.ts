@@ -1,9 +1,12 @@
-interface Author {
+import type { ProductListItem } from "./product"
+import type { BreadcrumbLd, JsonLd, MetaTag } from "./seo"
+
+export interface Author {
     full_name: string
     avatar: string | null
 }
 
-interface PostListItem {
+export interface PostListItem {
     id: number
     title: string
     slug: string
@@ -12,7 +15,7 @@ interface PostListItem {
     featured_image: string | null
     category: string | null
     author: Author
-    published_at: string
+    published_at: string | null
     view_count: number
 }
 
@@ -23,60 +26,11 @@ export interface PostList {
     results: PostListItem[]
 }
 
-interface MetaTag {
-    title: string
-    description: string
-    canonical_url: string
-    is_indexable: boolean
-    og_title: string
-    og_description: string
-    og_image: string | null
-    twitter_card: string
-}
-
-interface JsonLdMainEntityOfPage {
-    "@type": "WebPage"
-    "@id": string
-}
-
-interface JsonLdAuthor {
-    "@type": "Person"
-}
-
-interface JsonLdLogo {
-    "@type": "ImageObject"
-    url: string
-}
-
-interface JsonLdPublisher {
-    "@type": "Organization"
-    name: string
-    logo: JsonLdLogo
-}
-
-interface JsonLd {
-    "@context": "https://schema.org"
-    "@type": "BlogPosting"
-    headline: string
-    description: string
-    datePublished: string
-    dateModified: string
-    mainEntityOfPage: JsonLdMainEntityOfPage
-    author: JsonLdAuthor
-    publisher: JsonLdPublisher
-}
-
-interface BreadcrumbItem {
-    "@type": "ListItem"
-    position: number
-    name: string
-    item: string
-}
-
-interface BreadcrumbLd {
-    "@context": "https://schema.org"
-    "@type": "BreadcrumbList"
-    itemListElement: BreadcrumbItem[]
+export interface PostMedia {
+    id: number
+    file: string
+    alt_text: string
+    is_video: string
 }
 
 export interface Post {
@@ -91,10 +45,12 @@ export interface Post {
     author: Author
     view_count: number
     allow_comments: boolean
-    media: unknown[]
+    media: PostMedia[]
     meta_tag: MetaTag
     json_ld: JsonLd
     breadcrumb_ld: BreadcrumbLd
-    published_at: string
+    /** Products the backend links to this post (same shape as ProductList items). */
+    related_products: ProductListItem[]
+    published_at: string | null
     updated_at: string
 }

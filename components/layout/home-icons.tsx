@@ -158,3 +158,53 @@ export function ChevronDownIcon({ className }: { className?: string }) {
         </svg>
     )
 }
+
+export function WhatsAppIcon({ className }: { className?: string }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+            <path
+                d="M12 2.7a9.3 9.3 0 0 0-8 14L2.8 21.2l4.7-1.2A9.3 9.3 0 1 0 12 2.7Z"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+            />
+            <path
+                d="M9 8.2c-.3 0-.6.1-.8.4-.3.3-.9.9-.9 2.1s.9 2.4 1 2.6c.2.2 1.8 2.9 4.5 3.9 2.2.9 2.7.7 3.2.6.5 0 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2-.1-.1-.3-.2-.6-.3l-1.4-.7c-.2-.1-.4-.1-.5.1l-.6.8c-.1.1-.2.2-.5.1-.3-.1-1.2-.4-2.2-1.4-.8-.7-1.3-1.6-1.5-1.9-.1-.2 0-.4.1-.5l.4-.5c.1-.2.2-.3.2-.5 0-.2 0-.3-.1-.4l-.6-1.5c-.2-.4-.4-.4-.6-.4Z"
+                fill="currentColor"
+            />
+        </svg>
+    )
+}
+
+export function SparkleIcon({ className }: { className?: string }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+            <path
+                d="M12 3c.6 3.9 2.1 5.4 6 6-3.9.6-5.4 2.1-6 6-.6-3.9-2.1-5.4-6-6 3.9-.6 5.4-2.1 6-6Z"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinejoin="round"
+            />
+            <path
+                d="M18.5 15.5c.3 1.9 1 2.6 2.9 3-1.9.4-2.6 1.1-2.9 3-.3-1.9-1-2.6-2.9-3 1.9-.4 2.6-1.1 2.9-3Z"
+                stroke="currentColor"
+                strokeWidth="1.2"
+                strokeLinejoin="round"
+            />
+        </svg>
+    )
+}
+
+export function TableSettingIcon({ className }: { className?: string }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+            <path
+                d="M3 10h18M5 10V7.5A2.5 2.5 0 0 1 7.5 5h9A2.5 2.5 0 0 1 19 7.5V10M4 10v7.5A2.5 2.5 0 0 0 6.5 20h11a2.5 2.5 0 0 0 2.5-2.5V10"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+            />
+            <path d="M9 14h6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        </svg>
+    )
+}

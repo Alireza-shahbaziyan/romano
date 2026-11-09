@@ -1,20 +1,23 @@
 import { SitemapStream, streamToPromise } from "sitemap"
 import { getProductSlugs, getPostSlugs } from "@/lib/api/sitemap"
 
+// Regenerated hourly (and cached by the Cache-Control headers below) so new
+// products and articles appear without a redeploy.
+export const revalidate = 3600
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
 
 const staticPages = [
     { path: "", changefreq: "daily", priority: 1 },
-    { path: "/catalog", changefreq: "daily", priority: 0.9 },
+    { path: "/products", changefreq: "daily", priority: 0.9 },
     { path: "/blog", changefreq: "weekly", priority: 0.7 },
     { path: "/about", changefreq: "monthly", priority: 0.5 },
     { path: "/contact", changefreq: "monthly", priority: 0.5 },
-    { path: "/faq", changefreq: "monthly", priority: 0.5 },
-    { path: "/shipping-returns", changefreq: "monthly", priority: 0.5 },
+    { path: "/faq", changefreq: "monthly", priority: 0.4 },
 ]
 
 const dynamicPages = [
-    { fetch: getProductSlugs, prefix: "/p" },
+    { fetch: getProductSlugs, prefix: "/products" },
     { fetch: getPostSlugs, prefix: "/blog" },
 ]
 

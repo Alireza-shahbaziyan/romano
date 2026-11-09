@@ -1,6 +1,8 @@
-# Starboy Store — Frontend
+# Romano Finger — Frontend
 
-This is the frontend for an online store, built with **Next.js** and **Bun**, designed to work with the [Pen](https://github.com/joqd/pen) backend (a Django-based e-commerce API).
+This is the frontend for **رومانو فینگر | Romano Finger** — a Persian (RTL) website for a finger food and VIP event styling business in Yazd, Iran. It is built with **Next.js** and **Bun**, and designed to work with the [Pen](https://github.com/joqd/pen) backend (a Django-based API).
+
+The website is a business/catalog/blog platform: products are ordered directly through WhatsApp and Instagram, so there is no shopping cart, checkout, or online payment in this codebase.
 
 ## Prerequisites
 
@@ -16,7 +18,7 @@ Before running the project, copy `.env.example` to `.env` and adjust the values 
 cp .env.example .env
 ```
 
-The most important variable is `NEXT_PUBLIC_API_URL`, which should point to your Pen backend instance.
+The most important variable is `NEXT_PUBLIC_API_URL`, which should point to your Pen backend instance. `NEXT_PUBLIC_INSTAGRAM_URL` sets the business Instagram profile used by the ordering links (a placeholder is used until the real account is added).
 
 ---
 
@@ -87,9 +89,7 @@ bun run start
 ```
 ├── app/            # Pages and routing (App Router)
 ├── components/     # UI components, organized by domain
-├── hooks/          # Custom React hooks
-├── lib/            # API client and utility functions
-├── stores/         # State management with Zustand
+├── lib/            # API client, site config, and utility functions
 └── types/          # TypeScript types
 ```
 

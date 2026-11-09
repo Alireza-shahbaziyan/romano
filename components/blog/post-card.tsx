@@ -34,6 +34,8 @@ interface PostCardProps {
 }
 
 export function PostCard({ post, eager = false }: PostCardProps) {
+    const dateLabel = formatPostDate(post.published_at)
+
     return (
         <Link href={`/blog/${post.slug}`} className="group block">
             <div className="relative aspect-4/3 overflow-hidden rounded-2xl bg-muted">
@@ -61,7 +63,7 @@ export function PostCard({ post, eager = false }: PostCardProps) {
             </div>
 
             <div className="mt-4 space-y-2">
-                <p className="text-xs text-muted-foreground">{formatPostDate(post.published_at)}</p>
+                {dateLabel && <p className="text-xs text-muted-foreground">{dateLabel}</p>}
 
                 <p className="flex items-center gap-1.5 text-lg leading-snug font-semibold text-foreground">
                     <span className="line-clamp-2">{post.title}</span>

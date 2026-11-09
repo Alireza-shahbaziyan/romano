@@ -35,7 +35,7 @@ async function fetchAllSlugs(path: string): Promise<SitemapItem[]> {
         }
 
         for (const item of page.results) {
-            items.push({ slug: item.slug, updated_at: item.published_at ?? "" })
+            items.push({ slug: item.slug, updated_at: normalizeLastmod(item.published_at) })
         }
 
         if (!page.next) break
@@ -43,6 +43,18 @@ async function fetchAllSlugs(path: string): Promise<SitemapItem[]> {
     }
 
     return items
+}
+
+/**
+ * `lastmod` must be a real ISO timestamp. Some backend records carry
+ * non-Gregorian (Jalali) or malformed date strings — those are dropped
+ * rather than passed through, so the sitemap XML stays valid.
+ */
+function normalizeLastmod(value: string | null): string {
+    if (!value) return ""
+    const parsed = new Date(value)
+    if (Number.isNaN(parsed.getTime())) return ""
+    return parsed.toISOString()
 }
 
 export function getProductSlugs(): Promise<SitemapItem[]> {

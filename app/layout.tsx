@@ -1,10 +1,11 @@
 import "./globals.css"
+import type { Metadata } from "next"
 import { ThemeProvider } from "@/components/common/theme-provider"
-import { cn } from "@/lib/utils"
-import { AmbientGlow } from "@/components/layout/ambient-glow"
-import { AuthProvider } from "@/hooks/use-auth"
 import { Toaster } from "@/components/ui/toast"
+import { buildSiteMetadata } from "@/lib/seo"
 import { ViewTransitions } from "next-view-transitions"
+
+export const metadata: Metadata = buildSiteMetadata()
 
 type RootLayoutProps = {
     children: React.ReactNode
@@ -12,10 +13,9 @@ type RootLayoutProps = {
 
 export default function RootLayout({ children }: Readonly<RootLayoutProps>) {
     return (
-        <html lang="en" suppressHydrationWarning className={cn("antialiased")}>
+        <html lang="fa" dir="rtl" suppressHydrationWarning>
             <head>
-                <link rel="icon" href="/favicon/red.svg" media="(prefers-color-scheme: light)" />
-                <link rel="icon" href="/favicon/golden.svg" media="(prefers-color-scheme: dark)" />
+                <link rel="icon" href="/romano_logo.jpg" type="image/svg+xml" />
             </head>
             <body>
                 <ThemeProvider
@@ -24,11 +24,7 @@ export default function RootLayout({ children }: Readonly<RootLayoutProps>) {
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <AmbientGlow />
-
-                    <AuthProvider>
-                        <ViewTransitions>{children}</ViewTransitions>
-                    </AuthProvider>
+                    <ViewTransitions>{children}</ViewTransitions>
                     <Toaster />
                 </ThemeProvider>
             </body>

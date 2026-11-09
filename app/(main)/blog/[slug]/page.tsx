@@ -2,50 +2,71 @@ import type { Metadata } from "next"
 import Image from "next/image"
 import { Link } from "next-view-transitions"
 import { notFound } from "next/navigation"
-import { cn, formatPostDate } from "@/lib/utils"
-import { getPost } from "@/lib/api/post"
+import sanitizeHtml from "sanitize-html"
+import { formatPostDate, toFaDigits } from "@/lib/utils"
+import { getLatestPosts, getPost } from "@/lib/api/post"
+import { estimateReadingTime } from "@/lib/reading-time"
+import { metadataFromMetaTag } from "@/lib/seo"
 import { CopyLinkButton } from "@/components/blog/copy-link-button"
+import { PostCard } from "@/components/blog/post-card"
 
 export const dynamic = "force-dynamic"
+
+// ---------------------------------------------------------------------------
+// Article detail — full blog post with reading time, category, sanitized
+// HTML body, structured data, and related reading at the end. No comment
+// system: discussion happens on the business's WhatsApp/Instagram.
+// ---------------------------------------------------------------------------
 
 interface PostPageProps {
     params: Promise<{ slug: string }>
 }
 
+// Tags allowed in `content_html` — the backend renders article bodies as
+// HTML, so it gets sanitized before being injected into the page.
+const ALLOWED_TAGS = [
+    "p",
+    "br",
+    "hr",
+    "h2",
+    "h3",
+    "h4",
+    "ul",
+    "ol",
+    "li",
+    "strong",
+    "em",
+    "b",
+    "i",
+    "u",
+    "span",
+    "a",
+    "img",
+    "blockquote",
+    "figure",
+    "figcaption",
+    "table",
+    "thead",
+    "tbody",
+    "tr",
+    "th",
+    "td",
+]
+
 export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
     const { slug } = await params
     const post = await getPost(slug).catch(() => null)
-    if (!post) return {}
 
-    const { meta_tag } = post
+    // Throwing notFound() here (before the layout shell streams) is what
+    // makes an unknown slug respond with a real 404 status, not just the
+    // 404 body under a 200.
+    if (!post) notFound()
 
-    return {
-        title: meta_tag.title,
-        description: meta_tag.description,
-        alternates: { canonical: meta_tag.canonical_url },
-        robots: {
-            index: meta_tag.is_indexable,
-            follow: meta_tag.is_indexable,
-        },
-        openGraph: {
-            type: "article",
-            title: meta_tag.og_title,
-            description: meta_tag.og_description,
-            url: meta_tag.canonical_url,
-            publishedTime: post.published_at,
-            modifiedTime: post.updated_at,
-            authors: [post.author.full_name],
-            images: meta_tag.og_image ? [{ url: meta_tag.og_image }] : undefined,
-        },
-        twitter: {
-            card:
-                (meta_tag.twitter_card as "summary" | "summary_large_image") ||
-                "summary_large_image",
-            title: meta_tag.og_title,
-            description: meta_tag.og_description,
-            images: meta_tag.og_image ? [meta_tag.og_image] : undefined,
-        },
-    }
+    return metadataFromMetaTag(post.meta_tag, {
+        title: post.title,
+        description: post.excerpt,
+        image: post.featured_image,
+    })
 }
 
 export default async function PostPage({ params }: PostPageProps) {
@@ -54,7 +75,22 @@ export default async function PostPage({ params }: PostPageProps) {
 
     if (!post) notFound()
 
-    const readingMinutes = getReadingMinutes(post.content_html)
+    const readingMinutes = estimateReadingTime(post.content_html)
+    const safeContentHtml = sanitizeHtml(post.content_html, {
+        allowedTags: ALLOWED_TAGS,
+        allowedAttributes: {
+            a: ["href", "title", "target", "rel"],
+            img: ["src", "alt", "title", "width", "height", "loading"],
+            td: ["colspan", "rowspan"],
+            th: ["colspan", "rowspan"],
+        },
+    })
+
+    // Related reading — other articles from the magazine. (The backend has
+    // no per-post "related articles" endpoint, so the latest posts are used
+    // as real, non-fabricated related reading.)
+    const relatedList = await getLatestPosts(1, 4).catch(() => null)
+    const related = (relatedList?.results ?? []).filter((p) => p.slug !== post.slug).slice(0, 3)
 
     return (
         <>
@@ -62,25 +98,25 @@ export default async function PostPage({ params }: PostPageProps) {
                 already owns the shape search engines expect. */}
             <script
                 type="application/ld+json"
-
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(post.json_ld) }}
             />
             <script
                 type="application/ld+json"
-
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(post.breadcrumb_ld) }}
             />
 
-            <article dir="rtl" className="mx-auto max-w-180 px-5 pt-10 pb-24 sm:px-8">
-                {/* <BreadcrumbNav items={post.breadcrumb_ld?.itemListElement} /> */}
-
+            <article className="mx-auto max-w-180 px-5 pt-24 pb-24 sm:px-8">
                 <header>
-                    <h1 className="mt-4 text-3xl leading-tight font-bold tracking-tight text-foreground sm:text-4xl">
+                    {post.category && (
+                        <p className="text-[11px] font-medium text-primary">{post.category}</p>
+                    )}
+
+                    <h1 className="mt-3 text-3xl leading-[1.6] font-bold text-foreground sm:text-4xl">
                         {post.title}
                     </h1>
 
                     {post.excerpt && (
-                        <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+                        <p className="mt-4 text-base leading-9 text-muted-foreground">
                             {post.excerpt}
                         </p>
                     )}
@@ -107,14 +143,16 @@ export default async function PostPage({ params }: PostPageProps) {
                                 {post.author.full_name}
                             </span>
                         </div>
+                        {formatPostDate(post.published_at) && (
+                            <>
+                                <Dot />
+                                <time dateTime={post.published_at ?? undefined}>
+                                    {formatPostDate(post.published_at)}
+                                </time>
+                            </>
+                        )}
                         <Dot />
-                        <time dateTime={post.published_at}>
-                            {formatPostDate(post.published_at)}
-                        </time>
-                        <Dot />
-                        <span>{toFa(readingMinutes)} دقیقه مطالعه</span>
-                        {/* <Dot />
-                        <span>{toFa(post.view_count)} بازدید</span> */}
+                        <span>{toFaDigits(readingMinutes)} دقیقه مطالعه</span>
                     </div>
                 </header>
 
@@ -131,10 +169,9 @@ export default async function PostPage({ params }: PostPageProps) {
                     </div>
                 )}
 
-                {}
                 <div
                     className={proseClassName}
-                    dangerouslySetInnerHTML={{ __html: post.content_html }}
+                    dangerouslySetInnerHTML={{ __html: safeContentHtml }}
                 />
 
                 <footer className="mt-16 flex items-center justify-between border-t border-border pt-8">
@@ -148,46 +185,27 @@ export default async function PostPage({ params }: PostPageProps) {
                     <CopyLinkButton url={post.meta_tag.canonical_url} />
                 </footer>
             </article>
+
+            {related.length > 0 && (
+                <section className="mx-auto max-w-295 px-5 pb-24 sm:px-8">
+                    <h2 className="border-b border-border pb-4 text-lg font-bold text-foreground lg:text-xl">
+                        مطالب مرتبط
+                    </h2>
+                    <ul
+                        role="list"
+                        className="mt-8 grid grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3"
+                    >
+                        {related.map((item) => (
+                            <li key={item.slug}>
+                                <PostCard post={item} />
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            )}
         </>
     )
 }
-
-// ---------------------------------------------------------------------------
-// Rendered breadcrumb — built from the same `breadcrumb_ld.itemListElement`
-// array that's serialized into JSON-LD above, so the visible trail and the
-// structured data can never drift apart from each other.
-// ---------------------------------------------------------------------------
-// function BreadcrumbNav({ items }: { items?: { position: number; name: string; item: string }[] }) {
-//     if (!items?.length) return null
-
-//     return (
-//         <nav
-//             aria-label="breadcrumb"
-//             className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground"
-//         >
-//             {items
-//                 .slice()
-//                 .sort((a, b) => a.position - b.position)
-//                 .map((crumb, idx, arr) => (
-//                     <span key={crumb.position} className="flex items-center gap-1.5">
-//                         {idx > 0 && <span aria-hidden>/</span>}
-//                         {idx === arr.length - 1 ? (
-//                             <span aria-current="page" className="text-foreground">
-//                                 {crumb.name}
-//                             </span>
-//                         ) : (
-//                             <a
-//                                 href={crumb.item}
-//                                 className="transition-colors hover:text-foreground"
-//                             >
-//                                 {crumb.name}
-//                             </a>
-//                         )}
-//                     </span>
-//                 ))}
-//         </nav>
-//     )
-// }
 
 function Dot() {
     return (
@@ -211,24 +229,6 @@ function ArrowIcon({ className }: { className?: string }) {
     )
 }
 
-const faDigits = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"]
-
-function toFa(n: number) {
-    return String(n)
-        .split("")
-        .map((d) => (d >= "0" && d <= "9" ? faDigits[Number(d)] : d))
-        .join("")
-}
-
-// Rough Persian reading speed (~180 wpm) off the plain-text length of the
-// rendered HTML. Good enough for a "N دقیقه مطالعه" label — not meant to be
-// precise, just directionally useful the way every blog's estimate is.
-function getReadingMinutes(html: string) {
-    const text = html.replace(/<[^>]+>/g, " ")
-    const words = text.trim().split(/\s+/).filter(Boolean).length
-    return Math.max(1, Math.round(words / 180))
-}
-
 // ---------------------------------------------------------------------------
 // Typography for `content_html` — hand-styled via Tailwind arbitrary child
 // selectors rather than assuming @tailwindcss/typography is installed.
@@ -237,17 +237,17 @@ function getReadingMinutes(html: string) {
 // siblings), plus `a` and `img` as descendants since those can also appear
 // inline inside a paragraph.
 // ---------------------------------------------------------------------------
-const proseClassName = cn(
+const proseClassName = [
     "mt-10 text-foreground",
-    "[&>p]:mt-5 [&>p]:text-[15px] [&>p]:leading-[1.9] [&>p]:text-foreground/90",
-    "[&>h2]:mt-12 [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:tracking-tight [&>h2]:text-foreground",
-    "[&>h3]:mt-9 [&>h3]:text-xl [&>h3]:font-bold [&>h3]:tracking-tight [&>h3]:text-foreground",
-    "[&>ul]:mt-5 [&>ul]:list-disc [&>ul]:space-y-2 [&>ul]:pr-5 [&>ul]:text-[15px] [&>ul]:leading-[1.9] [&>ul]:text-foreground/90",
-    "[&>ol]:mt-5 [&>ol]:list-decimal [&>ol]:space-y-2 [&>ol]:pr-5 [&>ol]:text-[15px] [&>ol]:leading-[1.9] [&>ol]:text-foreground/90",
-    "[&>blockquote]:mt-8 [&>blockquote]:border-r-2 [&>blockquote]:border-foreground [&>blockquote]:pr-5 [&>blockquote]:text-lg [&>blockquote]:leading-relaxed [&>blockquote]:text-muted-foreground [&>blockquote]:italic",
+    "[&>p]:mt-5 [&>p]:text-[15px] [&>p]:leading-[2.1] [&>p]:text-foreground/90",
+    "[&>h2]:mt-12 [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:text-foreground",
+    "[&>h3]:mt-9 [&>h3]:text-xl [&>h3]:font-bold [&>h3]:text-foreground",
+    "[&>ul]:mt-5 [&>ul]:list-disc [&>ul]:space-y-2 [&>ul]:pr-5 [&>ul]:text-[15px] [&>ul]:leading-[2.1] [&>ul]:text-foreground/90",
+    "[&>ol]:mt-5 [&>ol]:list-decimal [&>ol]:space-y-2 [&>ol]:pr-5 [&>ol]:text-[15px] [&>ol]:leading-[2.1] [&>ol]:text-foreground/90",
+    "[&>blockquote]:mt-8 [&>blockquote]:border-r-2 [&>blockquote]:border-primary [&>blockquote]:pr-5 [&>blockquote]:text-lg [&>blockquote]:leading-relaxed [&>blockquote]:text-muted-foreground",
     "[&>img]:mt-8 [&>img]:w-full [&>img]:rounded-2xl",
-    "[&>figure]:mt-8 [&>figure_figcaption]:mt-2 [&>figure_figcaption]:text-center [&>figure_figcaption]:text-xs [&>figure_figcaption]:text-muted-foreground [&>figure_img]:w-full [&>figure_img]:rounded-2xl",
+    "[&>figure]:mt-8 [&>figure>figcaption]:mt-2 [&>figure>figcaption]:text-center [&>figure>figcaption]:text-xs [&>figure>figcaption]:text-muted-foreground [&>figure>img]:w-full [&>figure>img]:rounded-2xl",
     "[&>hr]:my-12 [&>hr]:border-border",
     "[&_a]:underline [&_a]:decoration-border [&_a]:underline-offset-4 [&_a]:transition-colors hover:[&_a]:decoration-foreground",
-    "[&_strong]:font-semibold [&_strong]:text-foreground"
-)
+    "[&_strong]:font-semibold [&_strong]:text-foreground",
+].join(" ")

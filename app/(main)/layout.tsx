@@ -1,5 +1,6 @@
 import Menu from "@/components/layout/menu"
 import Footer from "@/components/layout/footer"
+import { WhatsAppFab } from "@/components/order/whatsapp-fab"
 
 interface LayoutProps {
     children: React.ReactNode
@@ -7,14 +8,11 @@ interface LayoutProps {
 
 export default function MainLayout({ children }: LayoutProps) {
     return (
-        <div className="mt-8">
-            <div>
-                <Menu />
-            </div>
+        <div>
+            <Menu />
             <div>{children}</div>
-            <div>
-                <Footer />
-            </div>
+            <Footer />
+            <WhatsAppFab />
         </div>
     )
 }

@@ -1,0 +1,3663 @@
+openapi: 3.0.3
+info:
+  title: PEN API
+  version: 1.0.0
+  description: Backend API powering online stores.
+paths:
+  /api/audios/:
+    get:
+      operationId: api_audios_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - Audios
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAudioList'
+          description: ''
+  /api/audios/{id}/next/:
+    get:
+      operationId: api_audios_next_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Audios
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/audios/{id}/previous/:
+    get:
+      operationId: api_audios_previous_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Audios
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/audios/random/:
+    get:
+      operationId: api_audios_random_retrieve
+      tags:
+      - Audios
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/auth/addresses/:
+    get:
+      operationId: api_auth_addresses_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - Addresses
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAddressList'
+          description: ''
+    post:
+      operationId: api_auth_addresses_create
+      tags:
+      - Addresses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AddressWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AddressWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressWrite'
+          description: ''
+  /api/auth/addresses/{id}/:
+    get:
+      operationId: api_auth_addresses_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this آدرس.
+        required: true
+      tags:
+      - Addresses
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Address'
+          description: ''
+    put:
+      operationId: api_auth_addresses_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this آدرس.
+        required: true
+      tags:
+      - Addresses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AddressWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AddressWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressWrite'
+          description: ''
+    patch:
+      operationId: api_auth_addresses_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this آدرس.
+        required: true
+      tags:
+      - Addresses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAddressWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAddressWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAddressWrite'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressWrite'
+          description: ''
+    delete:
+      operationId: api_auth_addresses_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this آدرس.
+        required: true
+      tags:
+      - Addresses
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/auth/cities/:
+    get:
+      operationId: api_auth_cities_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - Provinces and Cities
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCityList'
+          description: ''
+  /api/auth/csrf/:
+    get:
+      operationId: api_auth_csrf_retrieve
+      description: Ensures the csrftoken cookie is set on the client. Call once on
+        app load.
+      summary: Set CSRF cookie
+      tags:
+      - Auth
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetailResponse'
+          description: ''
+  /api/auth/login/:
+    post:
+      operationId: api_auth_login_create
+      description: |-
+        Send a one-time password (OTP) to the specified phone number.
+
+        The OTP is required to complete authentication using the `/auth/verify/` endpoint.
+
+        Rate limited per phone number and per IP address.
+      summary: Request login OTP
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+            examples:
+              RequestExample:
+                value:
+                  phone: '9123456789'
+                summary: Request OTP
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Login'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Login'
+        required: true
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/auth/logout/:
+    post:
+      operationId: api_auth_logout_create
+      description: Invalidate the current session and log out the authenticated user.
+      summary: Logout current user
+      tags:
+      - Auth
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetailResponse'
+          description: Logout successful.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Authentication required.
+  /api/auth/me/:
+    get:
+      operationId: api_auth_me_retrieve
+      description: Retrieve the profile of the currently authenticated user.
+      summary: Current authenticated user
+      tags:
+      - Auth
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+          description: Authenticated user profile.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Authentication required.
+    patch:
+      operationId: api_auth_me_partial_update
+      description: 'Update authenticated user''s profile. Supported fields: full_name
+        and avatar.'
+      summary: Update current user profile
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserUpdate'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+          description: Updated user profile.
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Invalid data.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Authentication required.
+  /api/auth/provinces/:
+    get:
+      operationId: api_auth_provinces_list
+      tags:
+      - Provinces and Cities
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Province'
+          description: ''
+  /api/auth/provinces/{province_id}/cities/:
+    get:
+      operationId: api_auth_provinces_cities_list
+      parameters:
+      - in: path
+        name: province_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Provinces and Cities
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/City'
+          description: ''
+  /api/auth/resend/:
+    post:
+      operationId: api_auth_resend_create
+      description: |-
+        Resend the one-time password (OTP) to the specified phone number.
+
+        Subject to a stricter rate limit than the initial OTP request endpoint to prevent SMS abuse.
+      summary: Resend login OTP
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+            examples:
+              RequestExample:
+                value:
+                  phone: '9123456789'
+                summary: Resend OTP
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Login'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Login'
+        required: true
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/auth/verify/:
+    post:
+      operationId: api_auth_verify_create
+      description: |-
+        Verify the one-time password (OTP).
+
+        Optionally provide `full_name`. It is applied only when the user is new or does not have a name yet. Existing names are not changed here.
+      summary: Verify otp
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyOTP'
+            examples:
+              RequestExampleWithName:
+                value:
+                  phone: '9123456789'
+                  code: 123456
+                  full_name: علی رضایی
+                summary: Verify OTP with name
+              RequestExampleWithoutName:
+                value:
+                  phone: '9123456789'
+                  code: 123456
+                summary: Verify OTP
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VerifyOTP'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VerifyOTP'
+        required: true
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/blog/posts/:
+    get:
+      operationId: api_blog_posts_list
+      parameters:
+      - in: query
+        name: allow_comments
+        schema:
+          type: boolean
+      - in: query
+        name: author
+        schema:
+          type: string
+      - in: query
+        name: category
+        schema:
+          type: string
+      - in: query
+        name: featured
+        schema:
+          type: boolean
+      - in: query
+        name: min_views
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: period
+        schema:
+          type: string
+          enum:
+          - month
+          - today
+          - week
+          - year
+        description: |-
+          * `today` - Today
+          * `week` - This week
+          * `month` - This month
+          * `year` - This year
+      - in: query
+        name: published_after
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: published_before
+        schema:
+          type: string
+          format: date-time
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - Posts
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPostListList'
+          description: ''
+  /api/blog/posts/{slug}/:
+    get:
+      operationId: api_blog_posts_retrieve
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+          title: اسلاگ
+        required: true
+      tags:
+      - Posts
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostDetail'
+          description: ''
+  /api/cart/:
+    get:
+      operationId: api_cart_retrieve
+      description: Returns current cart for guest or authenticated user. For guest
+        users, a cart_token cookie will be created automatically.
+      summary: Get current cart
+      tags:
+      - Carts
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+          description: ''
+  /api/cart/items/:
+    post:
+      operationId: api_cart_items_create
+      description: Adds a product variant to the current cart. The item is identified
+        by SKU. If the variant already exists in the cart, quantity will be increased.
+      summary: Add item to cart
+      tags:
+      - Carts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddCartItem'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AddCartItem'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AddCartItem'
+        required: true
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+          description: Cart updated successfully.
+        '400':
+          description: Invalid quantity or insufficient stock.
+        '404':
+          description: Product variant not found.
+  /api/cart/items/{sku}/:
+    patch:
+      operationId: api_cart_items_partial_update
+      description: Updates quantity of an existing cart item. SKU is used to identify
+        the product variant.
+      summary: Update cart item quantity
+      parameters:
+      - in: path
+        name: sku
+        schema:
+          type: string
+        description: Product variant SKU
+        required: true
+      tags:
+      - Carts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateCartItem'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateCartItem'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateCartItem'
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+          description: Cart updated successfully.
+        '404':
+          description: Cart item not found.
+    delete:
+      operationId: api_cart_items_destroy
+      description: Removes a product variant completely from the current cart.
+      summary: Remove item from cart
+      parameters:
+      - in: path
+        name: sku
+        schema:
+          type: string
+        description: Product variant SKU
+        required: true
+      tags:
+      - Carts
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+          description: Cart updated successfully.
+        '404':
+          description: Cart item not found.
+  /api/categories/:
+    get:
+      operationId: api_categories_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - Categories
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCategoryListList'
+          description: ''
+  /api/categories/{slug}/:
+    get:
+      operationId: api_categories_retrieve
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+          title: اسلاگ
+        required: true
+      tags:
+      - Categories
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryDetail'
+          description: ''
+  /api/checkout/gateways/:
+    get:
+      operationId: api_checkout_gateways_retrieve
+      description: Lists currently active payment gateways (`is_active=True`), ordered
+        by priority (model default ordering), for the "choose a payment method" step
+        of checkout. `credentials` is never serialized - only id/title/badge/description/min_amount/max_amount
+        reach the frontend.
+      summary: List active payment gateways
+      tags:
+      - Checkout
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Gateway'
+          description: ''
+        '401':
+          description: No authenticated user.
+  /api/collections/:
+    get:
+      operationId: api_collections_list
+      description: ViewSet for reading Collection objects.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - Collections
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCollectionListList'
+          description: ''
+  /api/collections/{slug}/:
+    get:
+      operationId: api_collections_retrieve
+      description: ViewSet for reading Collection objects.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+          title: اسلاگ
+        required: true
+      tags:
+      - Collections
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionDetail'
+          description: ''
+  /api/gallery/customers/:
+    get:
+      operationId: api_gallery_customers_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - Gallery
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCustomerGalleryList'
+          description: ''
+  /api/gallery/customers/{id}/:
+    get:
+      operationId: api_gallery_customers_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this گالری مشتری.
+        required: true
+      tags:
+      - Gallery
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerGallery'
+          description: ''
+  /api/orders/:
+    get:
+      operationId: api_orders_retrieve
+      description: Returns a paginated list of every order the authenticated user
+        has ever placed, most recent first. Supports filtering by `status` (any value
+        of Order.Status, e.g. `pending_payment`, `paid`, `cancelled`, `expired`, `refunded`,
+        `processing`).
+      summary: List my orders
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Page number.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 'Number of orders per page. Maximum: 100.'
+      - in: query
+        name: status
+        schema:
+          type: string
+        description: Filter orders by status.
+      tags:
+      - Orders
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+    post:
+      operationId: api_orders_create
+      description: |-
+        Converts the authenticated user's active Cart into a new Order. This is the step the checkout page calls right after the user confirms their shipping address, and before they pick a payment gateway.
+
+        Not tied to any "current order" state: calling this again later (after adding new items to the cart) simply creates another, independent order - a customer can have many orders over time, and several PENDING_PAYMENT ones at once.
+      summary: Create an order from the active cart
+      tags:
+      - Orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrder'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreateOrder'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateOrder'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: Order created successfully.
+        '400':
+          description: Address validation error (`address_id`), or a business-logic
+            error (`detail`) such as an empty cart or an out-of-stock item.
+        '401':
+          description: No authenticated user.
+  /api/orders/{token}/:
+    get:
+      operationId: api_orders_retrieve_2
+      description: Returns full detail for one order, identified by its public `token`.
+        Must belong to the caller.
+      summary: Retrieve a specific order
+      parameters:
+      - in: path
+        name: token
+        schema:
+          type: string
+        required: true
+      tags:
+      - Orders
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+        '404':
+          description: No such order for this user.
+  /api/orders/{token}/address/:
+    patch:
+      operationId: api_orders_address_partial_update
+      description: Updates the address of an order that is still `pending_payment`
+        (and not expired). Any PENDING payment attempt on this order is invalidated
+        - the gateway session it points to was created for the old address/total and
+        can no longer be trusted, so the frontend must call `pay/` again after this
+        to start a fresh one.
+      summary: Change a pending order's shipping address
+      parameters:
+      - in: path
+        name: token
+        schema:
+          type: string
+        required: true
+      tags:
+      - Orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOrderAddressUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOrderAddressUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOrderAddressUpdate'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+        '400':
+          description: Invalid address, or order is no longer editable.
+        '404':
+          description: No such order for this user.
+  /api/orders/{token}/cancel/:
+    post:
+      operationId: api_orders_cancel_create
+      description: Cancels an order that is still `pending_payment` and releases its
+        reserved stock. Orders that are already paid, expired, cancelled, or refunded
+        cannot be cancelled through this endpoint.
+      summary: Cancel a pending order
+      parameters:
+      - in: path
+        name: token
+        schema:
+          type: string
+        required: true
+      tags:
+      - Orders
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+        '400':
+          description: Order is not in a cancellable state.
+        '404':
+          description: No such order for this user.
+  /api/orders/{token}/items/:
+    post:
+      operationId: api_orders_items_create
+      description: Adds a new line item (by variant SKU) to an order that is still
+        `pending_payment`. Reserves stock for it and recalculates order totals. Fails
+        if the item is already on the order (use the update endpoint to change its
+        quantity instead) or if stock is insufficient. Invalidates any PENDING payment
+        attempt, same as address changes.
+      summary: Add an item to a pending order
+      parameters:
+      - in: path
+        name: token
+        schema:
+          type: string
+        required: true
+      tags:
+      - Orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddOrderItem'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AddOrderItem'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AddOrderItem'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+        '400':
+          description: Item already on the order, out of stock, or order no longer
+            editable.
+        '404':
+          description: No such order for this user, or no such SKU.
+  /api/orders/{token}/items/{item_id}/:
+    patch:
+      operationId: api_orders_items_partial_update
+      description: PATCH changes the quantity of an existing line item. DELETE removes
+        it entirely (refused if it is the last remaining item - cancel the order instead).
+        Both are only allowed while the order is `pending_payment`, adjust reserved
+        stock and totals accordingly, and invalidate any PENDING payment attempt.
+      summary: Update or remove a line item on a pending order
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: token
+        schema:
+          type: string
+        required: true
+      tags:
+      - Orders
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+    delete:
+      operationId: api_orders_items_destroy
+      description: PATCH changes the quantity of an existing line item. DELETE removes
+        it entirely (refused if it is the last remaining item - cancel the order instead).
+        Both are only allowed while the order is `pending_payment`, adjust reserved
+        stock and totals accordingly, and invalidate any PENDING payment attempt.
+      summary: Update or remove a line item on a pending order
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: token
+        schema:
+          type: string
+        required: true
+      tags:
+      - Orders
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/orders/{token}/pay/:
+    post:
+      operationId: api_orders_pay_create
+      description: |-
+        Starts (or resumes) a payment attempt against the chosen gateway for the order identified by `token`, and returns a URL to send the browser to. The only thing the frontend sends is the gateway the user picked (`gateway_id`).
+
+        The frontend must perform a full-page redirect (`window.location.href = redirect_url`), not a client-side route change - the user is leaving the app for the gateway's own site.
+
+        **Notes:**
+        - Safe to call more than once: if a PENDING transaction already exists for this order, the same `redirect_url` is returned rather than creating a second payment session (also enforced at the DB level via a partial unique constraint on `PaymentTransaction`).
+        - Because payment is scoped to a specific order token (not a single "current order"), a user may have several different orders open for payment in different tabs at the same time.
+        - The `callback_url` sent to the gateway always points to the backend's own callback endpoint - the gateway never talks to the frontend directly.
+      summary: Start or resume a payment attempt for an order
+      parameters:
+      - in: path
+        name: token
+        schema:
+          type: string
+        required: true
+      tags:
+      - Checkout
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePayment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreatePayment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreatePayment'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Redirect URL to the payment gateway.
+        '400':
+          description: Invalid/inactive gateway (`gateway_id`), or order no longer
+            payable.
+        '404':
+          description: No such order for this user.
+        '401':
+          description: No authenticated user.
+  /api/payments/callback/{gateway_origin}/:
+    get:
+      operationId: api_payments_callback_retrieve
+      description: |-
+        Public endpoint (no auth) the gateway redirects the buyer's browser to after they complete or cancel payment (e.g. Zarinpal calling back with `?Authority=...&Status=OK`). There is no session/JWT on this request - the browser arrives here straight from the gateway's domain - so this view must not assume an authenticated user exists.
+
+        The transaction is looked up by `Authority` (the identifier the gateway itself hands back). All business logic lives in `services.handle_payment_callback()`, which is idempotent (safe to run twice for the same Authority) since gateways occasionally fire the callback more than once and users sometimes refresh the landing page mid-flow.
+
+        This view never returns JSON: it performs an HTTP redirect straight to the frontend's order-result page, addressed by the order's own token (a random, unguessable UUID - not a secret, ownership is re-checked by every authenticated endpoint the frontend calls next). The frontend re-fetches the real status from `GET /api/orders/{token}/` rather than trusting the `status` query string on this redirect, which is attacker-controllable.
+      summary: Payment gateway return callback
+      parameters:
+      - in: query
+        name: Authority
+        schema:
+          type: string
+      - in: query
+        name: Status
+        schema:
+          type: string
+      - in: path
+        name: gateway_origin
+        schema:
+          type: string
+        description: Identifier of the originating gateway (e.g. zarinpal).
+        required: true
+      tags:
+      - Payments
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '302':
+          description: 'Redirect to the frontend result page: `{FRONTEND_BASE_URL}/orders/{token}/result?status=success|failed`,
+            or, if the Authority could not be matched to any transaction: `{FRONTEND_BASE_URL}/orders/result?status=error`.'
+    post:
+      operationId: api_payments_callback_create
+      description: |-
+        Public endpoint (no auth) the gateway redirects the buyer's browser to after they complete or cancel payment (e.g. Zarinpal calling back with `?Authority=...&Status=OK`). There is no session/JWT on this request - the browser arrives here straight from the gateway's domain - so this view must not assume an authenticated user exists.
+
+        The transaction is looked up by `Authority` (the identifier the gateway itself hands back). All business logic lives in `services.handle_payment_callback()`, which is idempotent (safe to run twice for the same Authority) since gateways occasionally fire the callback more than once and users sometimes refresh the landing page mid-flow.
+
+        This view never returns JSON: it performs an HTTP redirect straight to the frontend's order-result page, addressed by the order's own token (a random, unguessable UUID - not a secret, ownership is re-checked by every authenticated endpoint the frontend calls next). The frontend re-fetches the real status from `GET /api/orders/{token}/` rather than trusting the `status` query string on this redirect, which is attacker-controllable.
+      summary: Payment gateway return callback
+      parameters:
+      - in: query
+        name: Authority
+        schema:
+          type: string
+      - in: query
+        name: Status
+        schema:
+          type: string
+      - in: path
+        name: gateway_origin
+        schema:
+          type: string
+        description: Identifier of the originating gateway (e.g. zarinpal).
+        required: true
+      tags:
+      - Payments
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '302':
+          description: 'Redirect to the frontend result page: `{FRONTEND_BASE_URL}/orders/{token}/result?status=success|failed`,
+            or, if the Authority could not be matched to any transaction: `{FRONTEND_BASE_URL}/orders/result?status=error`.'
+  /api/products/:
+    get:
+      operationId: api_products_list
+      description: |-
+        Return a paginated list of active products (status='active').
+
+        Searchable by title/slug/short description (`search`) and filterable
+        by category, collection, featured status, and stock availability
+        (`in_stock`). See the `ordering` parameter for sorting options and how
+        out-of-stock products are always placed at the end.
+      parameters:
+      - in: query
+        name: category
+        schema:
+          type: string
+        description: Category slug
+      - in: query
+        name: collections
+        schema:
+          type: array
+          items:
+            type: string
+        description: ممکن است چندین مقدار با کاما از هم جدا شوند.
+        explode: false
+        style: form
+      - in: query
+        name: featured
+        schema:
+          type: boolean
+        description: Featured products
+      - in: query
+        name: in_stock
+        schema:
+          type: boolean
+        description: Filter by stock availability. `true` returns only products with
+          at least one active variant whose stock is greater than 0. `false` returns
+          only products with no such variant.
+      - in: query
+        name: ordering
+        schema:
+          type: string
+        description: |-
+          Order results by one of the following fields (prefix with `-` for descending order, e.g. `-price`):
+
+          - `created_at` — product creation date
+          - `published_at` — product publish date (default ordering)
+          - `title` — product title (alphabetical)
+          - `price` — lowest price among the product's **active** variants. Price is not stored on the product itself but on each variant, so this orders by `MIN(price)` across the product's active variants.
+
+          Regardless of which field/direction you choose (and regardless of any other filter applied, e.g. `in_stock`), products with **no in-stock active variant** always sort after every product that has one — consistently across pages, not just within a single page. A `-id` tie-breaker is also applied automatically so pagination stays stable even when many products tie on the chosen field.
+
+          Example: `?ordering=-price` or `?ordering=created_at,-title`
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - Products
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProductListList'
+          description: ''
+  /api/products/{slug}/:
+    get:
+      operationId: api_products_retrieve
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+          title: اسلاگ
+        required: true
+      tags:
+      - Products
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetail'
+          description: ''
+  /api/products/{slug}/reviews/:
+    get:
+      operationId: api_products_reviews_list
+      parameters:
+      - in: query
+        name: category
+        schema:
+          type: string
+        description: Category slug
+      - in: query
+        name: collections
+        schema:
+          type: array
+          items:
+            type: string
+        description: ممکن است چندین مقدار با کاما از هم جدا شوند.
+        explode: false
+        style: form
+      - in: query
+        name: featured
+        schema:
+          type: boolean
+        description: Featured products
+      - in: query
+        name: in_stock
+        schema:
+          type: boolean
+        description: Only products with at least one active variant in stock
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: path
+        name: slug
+        schema:
+          type: string
+          title: اسلاگ
+        required: true
+      tags:
+      - Products
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReviewReadList'
+          description: ''
+  /api/reviews/:
+    get:
+      operationId: api_reviews_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - Reviews
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReviewReadList'
+          description: ''
+    post:
+      operationId: api_reviews_create
+      tags:
+      - Reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReviewWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReviewWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewWrite'
+          description: ''
+  /api/reviews/{id}/:
+    get:
+      operationId: api_reviews_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this بررسی.
+        required: true
+      tags:
+      - Reviews
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewRead'
+          description: ''
+    put:
+      operationId: api_reviews_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this بررسی.
+        required: true
+      tags:
+      - Reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReviewWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReviewWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewWrite'
+          description: ''
+    patch:
+      operationId: api_reviews_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this بررسی.
+        required: true
+      tags:
+      - Reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedReviewWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedReviewWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedReviewWrite'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewWrite'
+          description: ''
+    delete:
+      operationId: api_reviews_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this بررسی.
+        required: true
+      tags:
+      - Reviews
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/seo/site-schema/:
+    get:
+      operationId: api_seo_site_schema_retrieve
+      tags:
+      - SEO
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/seo/sitemap/categories/:
+    get:
+      operationId: api_seo_sitemap_categories_list
+      description: Returns slug and last updated timestamp for all active categories.
+      summary: Get category sitemap items
+      tags:
+      - Sitemap
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SitemapItem'
+          description: ''
+  /api/seo/sitemap/collections/:
+    get:
+      operationId: api_seo_sitemap_collections_list
+      description: Returns slug and last updated timestamp for all active collections.
+      summary: Get collection sitemap items
+      tags:
+      - Sitemap
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SitemapItem'
+          description: ''
+  /api/seo/sitemap/posts/:
+    get:
+      operationId: api_seo_sitemap_posts_list
+      description: Returns slug and last updated timestamp for all published posts.
+      summary: Get post sitemap items
+      tags:
+      - Sitemap
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SitemapItem'
+          description: ''
+  /api/seo/sitemap/products/:
+    get:
+      operationId: api_seo_sitemap_products_list
+      description: Returns slug and last updated timestamp for all active products.
+      summary: Get product sitemap items
+      tags:
+      - Sitemap
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SitemapItem'
+          description: ''
+  /api/wishlist/:
+    get:
+      operationId: api_wishlist_list
+      description: Returns all products saved in the authenticated user wishlist.
+      summary: Get wishlist
+      tags:
+      - Wishlist
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WishlistItem'
+          description: ''
+  /api/wishlist/items/:
+    post:
+      operationId: api_wishlist_items_create
+      description: Adds a product to the authenticated user wishlist. If the product
+        already exists in wishlist, nothing happens.
+      summary: Add product to wishlist
+      tags:
+      - Wishlist
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddWishlistItem'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AddWishlistItem'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AddWishlistItem'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WishlistItem'
+          description: Wishlist updated successfully.
+        '400':
+          description: Wishlist limit reached.
+        '404':
+          description: Product not found.
+  /api/wishlist/items/{slug}/:
+    delete:
+      operationId: api_wishlist_items_destroy
+      description: Removes a product from the authenticated user wishlist.
+      summary: Remove product from wishlist
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        description: Product slug
+        required: true
+      tags:
+      - Wishlist
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WishlistItem'
+          description: Wishlist updated successfully.
+        '404':
+          description: Product not found.
+  /core/footer-badges/:
+    get:
+      operationId: core_footer_badges_list
+      tags:
+      - Site Settings
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FooterBadge'
+          description: ''
+components:
+  schemas:
+    AddCartItem:
+      type: object
+      properties:
+        sku:
+          type: string
+          maxLength: 64
+        quantity:
+          type: integer
+          minimum: 1
+      required:
+      - quantity
+      - sku
+    AddOrderItem:
+      type: object
+      description: Input for POST /api/orders/{token}/items/.
+      properties:
+        sku:
+          type: string
+          maxLength: 64
+        quantity:
+          type: integer
+          minimum: 1
+      required:
+      - quantity
+      - sku
+    AddWishlistItem:
+      type: object
+      properties:
+        slug:
+          type: string
+          pattern: ^[-a-zA-Z0-9_]+$
+      required:
+      - slug
+    Address:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          title: عنوان
+          maxLength: 50
+        recipient_name:
+          type: string
+          title: نام گیرنده
+          maxLength: 100
+        phone:
+          type: string
+          title: شماره
+          maxLength: 20
+        province:
+          $ref: '#/components/schemas/Province'
+        city:
+          $ref: '#/components/schemas/City'
+        postal_code:
+          type: string
+          title: کدپستی
+          maxLength: 20
+        address_line:
+          type: string
+          title: آدرس
+        is_default:
+          type: boolean
+          title: پیشفرض
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: ساخته شده در
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: به‌روز شده در
+      required:
+      - address_line
+      - city
+      - created_at
+      - id
+      - phone
+      - postal_code
+      - province
+      - recipient_name
+      - title
+      - updated_at
+    AddressWrite:
+      type: object
+      properties:
+        title:
+          type: string
+          title: عنوان
+          maxLength: 50
+        recipient_name:
+          type: string
+          title: نام گیرنده
+          maxLength: 100
+        phone:
+          type: string
+          title: شماره
+          maxLength: 20
+        province:
+          type: integer
+          title: استان
+        city:
+          type: integer
+          title: شهر
+        postal_code:
+          type: string
+          title: کدپستی
+          maxLength: 20
+        address_line:
+          type: string
+          title: آدرس
+        is_default:
+          type: boolean
+          title: پیشفرض
+      required:
+      - address_line
+      - city
+      - phone
+      - postal_code
+      - province
+      - recipient_name
+      - title
+    Audio:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          title: عنوان
+          maxLength: 100
+        artist:
+          type: string
+          title: هنرمند
+          maxLength: 100
+        url:
+          type: string
+          readOnly: true
+        cover:
+          type: string
+          readOnly: true
+      required:
+      - artist
+      - cover
+      - id
+      - title
+      - url
+    Author:
+      type: object
+      properties:
+        full_name:
+          type: string
+          title: نام کامل
+          maxLength: 150
+        avatar:
+          type: string
+          format: uri
+          nullable: true
+          title: آواتار
+      required:
+      - full_name
+    Cart:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        token:
+          type: string
+          format: uuid
+          readOnly: true
+          title: توکن
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+          readOnly: true
+        total_price:
+          type: string
+          readOnly: true
+      required:
+      - id
+      - items
+      - token
+      - total_price
+    CartItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        sku:
+          type: string
+          readOnly: true
+        slug:
+          type: string
+          readOnly: true
+        image:
+          type: string
+          readOnly: true
+        quantity:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+          title: تعداد
+        product_title:
+          type: string
+          readOnly: true
+        available_stock:
+          type: string
+          readOnly: true
+        size:
+          type: string
+          readOnly: true
+        price:
+          type: integer
+          readOnly: true
+        compare_price:
+          type: string
+          readOnly: true
+      required:
+      - available_stock
+      - compare_price
+      - id
+      - image
+      - price
+      - product_title
+      - size
+      - sku
+      - slug
+    CategoryDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+          title: عنوان
+        slug:
+          type: string
+          readOnly: true
+          title: اسلاگ
+          pattern: ^[-a-zA-Z0-9_]+$
+        parent:
+          type: integer
+          readOnly: true
+          nullable: true
+          title: والد
+        parent_detail:
+          allOf:
+          - $ref: '#/components/schemas/CategoryList'
+          readOnly: true
+        short_description:
+          type: string
+          readOnly: true
+          title: توضیحات کوتاه
+        description:
+          type: string
+          readOnly: true
+          title: توضیحات
+        is_active:
+          type: boolean
+          readOnly: true
+          title: فعال است؟
+        image:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+          title: تصویر
+        image_dark:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+          title: تصویر دارک‌مود
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryList'
+          readOnly: true
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductList'
+          readOnly: true
+        meta_tag:
+          allOf:
+          - $ref: '#/components/schemas/MetaTag'
+          readOnly: true
+        json_ld:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        breadcrumb_ld:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: ساخته شده در
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: به‌روز شده در
+      required:
+      - breadcrumb_ld
+      - children
+      - created_at
+      - description
+      - id
+      - image
+      - image_dark
+      - is_active
+      - json_ld
+      - meta_tag
+      - parent
+      - parent_detail
+      - products
+      - short_description
+      - slug
+      - title
+      - updated_at
+    CategoryList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+          title: عنوان
+        slug:
+          type: string
+          readOnly: true
+          title: اسلاگ
+          pattern: ^[-a-zA-Z0-9_]+$
+        short_description:
+          type: string
+          readOnly: true
+          title: توضیحات کوتاه
+        image:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+          title: تصویر
+        image_dark:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+          title: تصویر دارک‌مود
+        is_active:
+          type: boolean
+          readOnly: true
+          title: فعال است؟
+        parent:
+          type: integer
+          readOnly: true
+          nullable: true
+          title: والد
+      required:
+      - id
+      - image
+      - image_dark
+      - is_active
+      - parent
+      - short_description
+      - slug
+      - title
+    CategoryMinimal:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+          title: عنوان
+        slug:
+          type: string
+          readOnly: true
+          title: اسلاگ
+          pattern: ^[-a-zA-Z0-9_]+$
+        short_description:
+          type: string
+          readOnly: true
+          title: توضیحات کوتاه
+        image:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+          title: تصویر
+        image_dark:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+          title: تصویر دارک‌مود
+        is_active:
+          type: boolean
+          readOnly: true
+          title: فعال است؟
+        parent:
+          type: integer
+          readOnly: true
+          nullable: true
+          title: والد
+      required:
+      - id
+      - image
+      - image_dark
+      - is_active
+      - parent
+      - short_description
+      - slug
+      - title
+    City:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        province_id:
+          type: integer
+          readOnly: true
+      required:
+      - id
+      - name
+      - province_id
+    CollectionDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+          title: عنوان
+        slug:
+          type: string
+          readOnly: true
+          title: اسلاگ
+          pattern: ^[-a-zA-Z0-9_]+$
+        parent:
+          type: integer
+          readOnly: true
+          nullable: true
+          title: والد
+        parent_detail:
+          allOf:
+          - $ref: '#/components/schemas/CollectionList'
+          readOnly: true
+        short_description:
+          type: string
+          readOnly: true
+          title: توضیحات کوتاه
+        description:
+          type: string
+          readOnly: true
+          title: توضیحات
+        is_active:
+          type: boolean
+          readOnly: true
+          title: فعال است؟
+        image:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+          title: تصویر
+        image_dark:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+          title: تصویر دارک‌مود
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollectionList'
+          readOnly: true
+        meta_tag:
+          allOf:
+          - $ref: '#/components/schemas/MetaTag'
+          readOnly: true
+        json_ld:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        breadcrumb_ld:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: ساخته شده در
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: به‌روز شده در
+      required:
+      - breadcrumb_ld
+      - children
+      - created_at
+      - description
+      - id
+      - image
+      - image_dark
+      - is_active
+      - json_ld
+      - meta_tag
+      - parent
+      - parent_detail
+      - short_description
+      - slug
+      - title
+      - updated_at
+    CollectionList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+          title: عنوان
+        slug:
+          type: string
+          readOnly: true
+          title: اسلاگ
+          pattern: ^[-a-zA-Z0-9_]+$
+        short_description:
+          type: string
+          readOnly: true
+          title: توضیحات کوتاه
+        image:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+          title: تصویر
+        image_dark:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+          title: تصویر دارک‌مود
+        is_active:
+          type: boolean
+          readOnly: true
+          title: فعال است؟
+        parent:
+          type: integer
+          readOnly: true
+          nullable: true
+          title: والد
+      required:
+      - id
+      - image
+      - image_dark
+      - is_active
+      - parent
+      - short_description
+      - slug
+      - title
+    CreateOrder:
+      type: object
+      description: Input for POST /api/orders/.
+      properties:
+        address_id:
+          type: integer
+        customer_note:
+          type: string
+          default: ''
+      required:
+      - address_id
+    CreatePayment:
+      type: object
+      description: Input for POST /api/orders/{token}/pay/.
+      properties:
+        gateway_id:
+          type: integer
+      required:
+      - gateway_id
+    CustomerGallery:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        image:
+          type: string
+          format: uri
+          title: تصویر
+        customer_name:
+          type: string
+          title: نام مشتری
+          maxLength: 100
+        caption:
+          type: string
+          title: کپشن
+          maxLength: 255
+        score:
+          type: integer
+          maximum: 10
+          minimum: 1
+          title: امتیاز
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: ساخته شده در
+      required:
+      - created_at
+      - id
+      - image
+    DetailResponse:
+      type: object
+      properties:
+        detail:
+          type: string
+          readOnly: true
+      required:
+      - detail
+    ErrorResponse:
+      type: object
+      properties:
+        detail:
+          type: string
+          readOnly: true
+      required:
+      - detail
+    FooterBadge:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          title: عنوان
+          maxLength: 100
+        html:
+          type: string
+          title: کد
+        html_2:
+          type: string
+          nullable: true
+          title: کد ثانویه
+        priority:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          title: اولویت
+      required:
+      - html
+      - id
+      - title
+    Gateway:
+      type: object
+      description: Public-facing gateway info for the checkout page. Never exposes
+        `credentials`.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+          title: عنوان
+        badge:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+          title: نشان
+        is_installment:
+          type: boolean
+          readOnly: true
+          title: اقساطی است؟
+        description:
+          type: string
+          readOnly: true
+          nullable: true
+          title: توضیحات
+        min_amount:
+          type: integer
+          readOnly: true
+          nullable: true
+          title: Minimum amount
+        max_amount:
+          type: integer
+          readOnly: true
+          nullable: true
+          title: Maximum amount
+      required:
+      - badge
+      - description
+      - id
+      - is_installment
+      - max_amount
+      - min_amount
+      - title
+    Login:
+      type: object
+      properties:
+        phone:
+          type: string
+          maxLength: 14
+      required:
+      - phone
+    MediaKindEnum:
+      enum:
+      - gallery
+      - size_chart
+      - fabric_guide
+      - design
+      type: string
+      description: |-
+        * `gallery` - گالری
+        * `size_chart` - جدول سایز
+        * `fabric_guide` - راهنمای پارچه
+        * `design` - طرح
+    MetaTag:
+      type: object
+      properties:
+        title:
+          type: string
+          title: عنوان
+          maxLength: 60
+        description:
+          type: string
+          title: توضیحات
+          maxLength: 160
+        canonical_url:
+          title: کنونیکال لینک
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        is_indexable:
+          type: boolean
+          title: قابل ایندکس است؟
+        og_title:
+          type: string
+          title: عنوان اجتماعی
+          maxLength: 95
+        og_description:
+          type: string
+          title: توضیحات اجتماعی
+          maxLength: 200
+        og_image:
+          type: string
+          format: uri
+          nullable: true
+          title: تصویر اجتماعی
+        twitter_card:
+          allOf:
+          - $ref: '#/components/schemas/TwitterCardEnum'
+          title: کارت توییتر
+      required:
+      - description
+      - title
+    Order:
+      type: object
+      description: Full order representation, used by the retrieve endpoint (single
+        order by token).
+      properties:
+        token:
+          type: string
+          format: uuid
+          readOnly: true
+          title: توکن
+        order_number:
+          type: string
+          readOnly: true
+          title: شماره سفارش
+        status:
+          allOf:
+          - $ref: '#/components/schemas/OrderStatusEnum'
+          readOnly: true
+          title: وضعیت
+        shipping_status:
+          allOf:
+          - $ref: '#/components/schemas/ShippingStatusEnum'
+          readOnly: true
+          title: وضعیت حمل و نقل
+        subtotal_amount:
+          type: integer
+          readOnly: true
+          title: جمع مبلغ کالاها
+        shipping_amount:
+          type: integer
+          readOnly: true
+          title: هزینه حمل و نقل
+        discount_amount:
+          type: integer
+          readOnly: true
+          title: مبلغ تخفیف
+        total_amount:
+          type: integer
+          readOnly: true
+          title: مبلغ نهایی
+        tracking_code:
+          type: string
+          readOnly: true
+          title: کد رهگیری
+        shipping_company:
+          type: string
+          readOnly: true
+          title: شرکت حمل و نقل
+        customer_note:
+          type: string
+          readOnly: true
+          title: یادداشت مشتری
+        expires_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: منقضی می‌شود در
+        paid_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          title: پرداخت شده در
+        is_payable:
+          type: boolean
+          readOnly: true
+        is_expired:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: ساخته شده در
+        address:
+          allOf:
+          - $ref: '#/components/schemas/Address'
+          readOnly: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+          readOnly: true
+      required:
+      - address
+      - created_at
+      - customer_note
+      - discount_amount
+      - expires_at
+      - is_expired
+      - is_payable
+      - items
+      - order_number
+      - paid_at
+      - shipping_amount
+      - shipping_company
+      - shipping_status
+      - status
+      - subtotal_amount
+      - token
+      - total_amount
+      - tracking_code
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+          title: عنوان
+        sku:
+          type: string
+          readOnly: true
+          title: شناسه
+        options:
+          readOnly: true
+        quantity:
+          type: integer
+          readOnly: true
+          title: تعداد
+        unit_price:
+          type: integer
+          readOnly: true
+          title: قیمت هر آیتم
+        total_price:
+          type: integer
+          readOnly: true
+          title: مبلغ کل
+        image:
+          type: string
+          readOnly: true
+      required:
+      - id
+      - image
+      - options
+      - quantity
+      - sku
+      - title
+      - total_price
+      - unit_price
+    OrderStatusEnum:
+      enum:
+      - pending_payment
+      - processing
+      - paid
+      - cancelled
+      - expired
+      - refunded
+      type: string
+      description: |-
+        * `pending_payment` - در انتظار پرداخت
+        * `processing` - درحال پردازش
+        * `paid` - پرداخت شده
+        * `cancelled` - کنسل شده
+        * `expired` - منقضی شده
+        * `refunded` - بازپرداخت شده
+    PaginatedAddressList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Address'
+    PaginatedAudioList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Audio'
+    PaginatedCategoryListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryList'
+    PaginatedCityList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/City'
+    PaginatedCollectionListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollectionList'
+    PaginatedCustomerGalleryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomerGallery'
+    PaginatedPostListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PostList'
+    PaginatedProductListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductList'
+    PaginatedReviewReadList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewRead'
+    PatchedAddressWrite:
+      type: object
+      properties:
+        title:
+          type: string
+          title: عنوان
+          maxLength: 50
+        recipient_name:
+          type: string
+          title: نام گیرنده
+          maxLength: 100
+        phone:
+          type: string
+          title: شماره
+          maxLength: 20
+        province:
+          type: integer
+          title: استان
+        city:
+          type: integer
+          title: شهر
+        postal_code:
+          type: string
+          title: کدپستی
+          maxLength: 20
+        address_line:
+          type: string
+          title: آدرس
+        is_default:
+          type: boolean
+          title: پیشفرض
+    PatchedOrderAddressUpdate:
+      type: object
+      description: Input for PATCH /api/orders/{token}/address/.
+      properties:
+        address_id:
+          type: integer
+    PatchedReviewWrite:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        product:
+          type: string
+          title: اسلاگ
+        rating:
+          type: integer
+          maximum: 5
+          minimum: 1
+          title: امتیاز
+        comment:
+          type: string
+          title: نظر
+    PatchedUpdateCartItem:
+      type: object
+      properties:
+        quantity:
+          type: integer
+          minimum: 1
+    PatchedUserUpdate:
+      type: object
+      properties:
+        full_name:
+          type: string
+          title: نام کامل
+          maxLength: 150
+        avatar:
+          type: string
+          format: uri
+          nullable: true
+          title: آواتار
+    PostDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          title: عنوان
+          maxLength: 255
+        slug:
+          title: اسلاگ
+          oneOf:
+          - type: string
+            maxLength: 280
+            pattern: ^[-a-zA-Z0-9_]+$
+          - type: string
+            maxLength: 0
+        excerpt:
+          type: string
+          title: گزیده
+          description: خلاصه کوتاه؛ اگر خالی بماند، به طور خودکار از محتوا تولید می‌شود.
+          maxLength: 500
+        content_html:
+          type: string
+          readOnly: true
+          description: HTML رندر شده از محتوا را در حافظه پنهان ذخیره کنید - به صورت
+            دستی ویرایش نکنید.
+        featured:
+          type: boolean
+          title: ویژه
+        featured_image:
+          type: string
+          readOnly: true
+        category:
+          type: string
+          title: اسلاگ
+          readOnly: true
+        author:
+          $ref: '#/components/schemas/Author'
+        view_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          title: تعداد بازدید
+        allow_comments:
+          type: boolean
+          title: کامنت مجاز است؟
+        media:
+          type: array
+          items:
+            $ref: '#/components/schemas/PostMedia'
+          readOnly: true
+        meta_tag:
+          allOf:
+          - $ref: '#/components/schemas/MetaTag'
+          readOnly: true
+        json_ld:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        breadcrumb_ld:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        related_products:
+          type: array
+          items: {}
+          readOnly: true
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+          title: منتشر شده در
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: به‌روز شده در
+      required:
+      - author
+      - breadcrumb_ld
+      - category
+      - content_html
+      - featured_image
+      - id
+      - json_ld
+      - media
+      - meta_tag
+      - related_products
+      - title
+      - updated_at
+    PostList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          title: عنوان
+          maxLength: 255
+        slug:
+          title: اسلاگ
+          oneOf:
+          - type: string
+            maxLength: 280
+            pattern: ^[-a-zA-Z0-9_]+$
+          - type: string
+            maxLength: 0
+        excerpt:
+          type: string
+          title: گزیده
+          description: خلاصه کوتاه؛ اگر خالی بماند، به طور خودکار از محتوا تولید می‌شود.
+          maxLength: 500
+        featured:
+          type: boolean
+          title: ویژه
+        featured_image:
+          type: string
+          readOnly: true
+        category:
+          type: string
+          readOnly: true
+        author:
+          $ref: '#/components/schemas/Author'
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+          title: منتشر شده در
+        view_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          title: تعداد بازدید
+      required:
+      - author
+      - category
+      - featured_image
+      - id
+      - title
+    PostMedia:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        file:
+          type: string
+          format: uri
+          title: فایل
+        alt_text:
+          type: string
+          title: متن جایگزین
+          maxLength: 255
+        is_video:
+          type: string
+          readOnly: true
+      required:
+      - file
+      - id
+      - is_video
+    ProductDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+          title: عنوان
+        slug:
+          type: string
+          readOnly: true
+          title: اسلاگ
+          pattern: ^[-a-zA-Z0-9_]+$
+        short_description:
+          type: string
+          readOnly: true
+          title: توضیحات کوتاه
+        description:
+          type: string
+          readOnly: true
+          title: توضیحات
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ProductDetailStatusEnum'
+          readOnly: true
+          title: وضعیت
+        published_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          title: منتشر شده در
+        featured:
+          type: boolean
+          readOnly: true
+          title: ویژه
+        collections:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollectionList'
+          readOnly: true
+        category:
+          allOf:
+          - $ref: '#/components/schemas/CategoryMinimal'
+          readOnly: true
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductImage'
+          readOnly: true
+        audio:
+          type: string
+          readOnly: true
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductVariant'
+          readOnly: true
+        is_in_wishlist:
+          type: string
+          readOnly: true
+        meta_tag:
+          allOf:
+          - $ref: '#/components/schemas/MetaTag'
+          readOnly: true
+        json_ld:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        breadcrumb_ld:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: ساخته شده در
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: به‌روز شده در
+      required:
+      - audio
+      - breadcrumb_ld
+      - category
+      - collections
+      - created_at
+      - description
+      - featured
+      - id
+      - images
+      - is_in_wishlist
+      - json_ld
+      - meta_tag
+      - published_at
+      - short_description
+      - slug
+      - status
+      - title
+      - updated_at
+      - variants
+    ProductDetailStatusEnum:
+      enum:
+      - draft
+      - active
+      - archived
+      type: string
+      description: |-
+        * `draft` - پیش‌نویس
+        * `active` - فعال
+        * `archived` - آرشیو
+    ProductImage:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        image:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+          title: تصویر
+        media_kind:
+          allOf:
+          - $ref: '#/components/schemas/MediaKindEnum'
+          readOnly: true
+          title: نوع مدیا
+        caption:
+          type: string
+          readOnly: true
+          title: کپشن
+        alt_text:
+          type: string
+          readOnly: true
+          title: متن جایگزین
+        is_primary:
+          type: boolean
+          readOnly: true
+          title: اصلی است؟
+      required:
+      - alt_text
+      - caption
+      - id
+      - image
+      - is_primary
+      - media_kind
+    ProductList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+          title: عنوان
+        slug:
+          type: string
+          readOnly: true
+          title: اسلاگ
+          pattern: ^[-a-zA-Z0-9_]+$
+        short_description:
+          type: string
+          readOnly: true
+          title: توضیحات کوتاه
+        featured:
+          type: boolean
+          readOnly: true
+          title: ویژه
+        published_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          title: منتشر شده در
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductImage'
+          readOnly: true
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductVariant'
+          readOnly: true
+        collections_list:
+          type: array
+          items:
+            type: string
+          readOnly: true
+      required:
+      - collections_list
+      - featured
+      - id
+      - images
+      - published_at
+      - short_description
+      - slug
+      - title
+      - variants
+    ProductSize:
+      type: object
+      properties:
+        name:
+          type: string
+          title: نام
+          maxLength: 100
+        label:
+          type: string
+          title: برچسب
+          maxLength: 25
+        attributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/SizeAttribute'
+      required:
+      - attributes
+      - label
+      - name
+    ProductVariant:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        sku:
+          type: string
+          readOnly: true
+          title: شناسه
+        size:
+          allOf:
+          - $ref: '#/components/schemas/ProductSize'
+          readOnly: true
+        size_name:
+          type: string
+          readOnly: true
+        price:
+          type: string
+          readOnly: true
+        compare_price:
+          type: string
+          readOnly: true
+        stock:
+          type: integer
+          readOnly: true
+          title: موجودی
+        is_active:
+          type: boolean
+          readOnly: true
+          title: فعال است؟
+      required:
+      - compare_price
+      - id
+      - is_active
+      - price
+      - size
+      - size_name
+      - sku
+      - stock
+    Province:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+      required:
+      - id
+      - name
+    ReviewProduct:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        slug:
+          type: string
+          pattern: ^[-a-zA-Z0-9_]+$
+      required:
+      - id
+      - slug
+      - title
+    ReviewRead:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          allOf:
+          - $ref: '#/components/schemas/ReviewUser'
+          readOnly: true
+        product:
+          allOf:
+          - $ref: '#/components/schemas/ReviewProduct'
+          readOnly: true
+        rating:
+          type: integer
+          readOnly: true
+          title: امتیاز
+        comment:
+          type: string
+          readOnly: true
+          title: نظر
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ReviewReadStatusEnum'
+          readOnly: true
+          title: وضعیت
+        status_display:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: ساخته شده در
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: به‌روز شده در
+      required:
+      - comment
+      - created_at
+      - id
+      - product
+      - rating
+      - status
+      - status_display
+      - updated_at
+      - user
+    ReviewReadStatusEnum:
+      enum:
+      - pending
+      - approved
+      - rejected
+      type: string
+      description: |-
+        * `pending` - در انتظار
+        * `approved` - تایید شده
+        * `rejected` - رد شده
+    ReviewUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        phone:
+          type: string
+      required:
+      - id
+      - phone
+    ReviewWrite:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        product:
+          type: string
+          title: اسلاگ
+        rating:
+          type: integer
+          maximum: 5
+          minimum: 1
+          title: امتیاز
+        comment:
+          type: string
+          title: نظر
+      required:
+      - comment
+      - id
+      - product
+      - rating
+    ShippingStatusEnum:
+      enum:
+      - pending
+      - processing
+      - shipped
+      - delivered
+      - returned
+      type: string
+      description: |-
+        * `pending` - در انتظار
+        * `processing` - درحال پردازش
+        * `shipped` - ارسال شده
+        * `delivered` - تحویل داده شده
+        * `returned` - مرجوع داده شده
+    SitemapItem:
+      type: object
+      properties:
+        slug:
+          type: string
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - slug
+      - updated_at
+    SizeAttribute:
+      type: object
+      properties:
+        key:
+          type: string
+          title: کلید
+          maxLength: 50
+        value:
+          type: string
+          title: مقدار
+          maxLength: 50
+        sort_order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          title: ترتیب مرتب سازی
+      required:
+      - key
+      - value
+    TwitterCardEnum:
+      enum:
+      - summary
+      - summary_large_image
+      type: string
+      description: |-
+        * `summary` - خلاصه
+        * `summary_large_image` - خلاصه تصویر بزرگ
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        phone:
+          type: string
+          title: شماره
+          maxLength: 14
+        full_name:
+          type: string
+          title: نام کامل
+          maxLength: 150
+        avatar:
+          type: string
+          format: uri
+          nullable: true
+          title: آواتار
+      required:
+      - full_name
+      - id
+      - phone
+    VerifyOTP:
+      type: object
+      properties:
+        phone:
+          type: string
+          maxLength: 14
+        code:
+          type: string
+          maxLength: 6
+        full_name:
+          oneOf:
+          - type: string
+            maxLength: 150
+            minLength: 2
+          - type: string
+            maxLength: 0
+      required:
+      - code
+      - phone
+    WishlistItem:
+      type: object
+      properties:
+        slug:
+          type: string
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: ساخته شده در
+      required:
+      - created_at
+      - slug
+      - title
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
