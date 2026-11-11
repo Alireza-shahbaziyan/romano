@@ -95,8 +95,8 @@ async function FilterSection({ searchParams }: { searchParams: SearchParams }) {
     const filters = parseProductFilters(params)
 
     const [categories, collections] = await Promise.all([
-        getCategories(50).catch(() => null),
-        getCollections(50).catch(() => null),
+        getCategories({ page_size: 50 }).catch(() => null),
+        getCollections({ page_size: 50 }).catch(() => null),
     ])
 
     return (

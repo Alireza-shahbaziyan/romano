@@ -1,11 +1,11 @@
 import Image from "next/image"
 import { Link } from "next-view-transitions"
-import { Package } from "lucide-react"
 
 import { Hero } from "@/components/home/hero"
 import { AboutPreview, ContactBand, Services, ValueStrip } from "@/components/home/sections"
 import { SectionHeader } from "@/components/home/section-header"
 import { Reveal } from "@/components/layout/scroll-reveal"
+import { CatalogCard } from "@/components/catalog/catalog-card"
 import { ProductCard } from "@/components/product/product-card"
 import { PostCard } from "@/components/blog/post-card"
 import { ArrowIcon } from "@/components/layout/home-icons"
@@ -40,7 +40,7 @@ export default async function Home() {
     const [featured, latest, categories, collections, gallery, posts] = await Promise.all([
         getFeaturedProducts(8).catch(() => null),
         getLatestProducts(8).catch(() => null),
-        getCategories(12).catch(() => null),
+        getCategories({ page_size: 12 }).catch(() => null),
         getCollections().catch(() => null),
         getCustomerGallery(8).catch(() => null),
         getLatestPosts(1, 4).catch(() => null),
@@ -189,7 +189,7 @@ function CategoriesSection({ items }: { items: CategoryListItem[] }) {
             <SectionHeader
                 eyebrow="دسته‌بندی‌ها"
                 title="محبوب‌ترین دسته‌های فینگر فود"
-                href="/products"
+                href="/category"
             />
             <ul
                 role="list"
@@ -197,47 +197,17 @@ function CategoriesSection({ items }: { items: CategoryListItem[] }) {
             >
                 {items.map((category, idx) => (
                     <li key={category.slug} className="w-40 shrink-0 snap-start lg:w-auto">
-                        <CategoryCard item={category} eager={idx < 4} />
+                        <CatalogCard
+                            item={category}
+                            href={`/products?category=${category.slug}`}
+                            eager={idx < 4}
+                            sizes="(max-width: 1024px) 160px, 25vw"
+                            headingLevel="h3"
+                        />
                     </li>
                 ))}
             </ul>
         </section>
-    )
-}
-
-function CategoryCard({ item, eager }: { item: CategoryListItem; eager: boolean }) {
-    const image = item.image ?? item.image_dark
-
-    return (
-        <Link
-            href={`/products?category=${item.slug}`}
-            className="group block overflow-hidden rounded-xl border border-border/60 bg-card transition-colors hover:border-primary/40"
-        >
-            <div className="relative aspect-4/3 w-full overflow-hidden bg-accent">
-                {image ? (
-                    <Image
-                        src={image}
-                        alt={item.title}
-                        fill
-                        sizes="(max-width: 1024px) 160px, 25vw"
-                        className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-                        loading={eager ? "eager" : "lazy"}
-                    />
-                ) : (
-                    <div className="flex h-full w-full items-center justify-center">
-                        <Package className="size-7 text-muted-foreground" />
-                    </div>
-                )}
-            </div>
-            <div className="p-3.5">
-                <p className="line-clamp-1 text-sm font-semibold text-foreground">{item.title}</p>
-                {item.short_description && (
-                    <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                        {item.short_description}
-                    </p>
-                )}
-            </div>
-        </Link>
     )
 }
 
@@ -254,6 +224,7 @@ function VipShowcase({ items }: { items: CollectionListItem[] }) {
             <SectionHeader
                 eyebrow="دیزاین و دکور VIP"
                 title="دیزاین میز پذیرایی و طراحی VIP مراسم"
+                href="/collection"
             />
             <div className="grid grid-cols-1 gap-3 px-5 lg:grid-cols-[1.6fr_1fr] lg:gap-5 lg:px-0">
                 <SpotlightTile item={primary} eager aspect="aspect-4/5 lg:aspect-16/10" />

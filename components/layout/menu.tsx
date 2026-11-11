@@ -20,6 +20,8 @@ import { whatsappOrderLink } from "@/lib/site"
 const NAV_LINKS = [
     { label: "خانه", href: "/" },
     { label: "فینگر فود", href: "/products" },
+    { label: "دسته بندی", href: "/category" },
+    { label: "کالکشن ها", href: "/collection" },
     { label: "مجله", href: "/blog" },
     { label: "درباره ما", href: "/about" },
     { label: "تماس با ما", href: "/contact" },

@@ -4,11 +4,16 @@ services:
             context: .
             dockerfile: Dockerfile
             args:
-                NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.starboy.ir}
-                NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://api.starboy.ir}
+                NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.romanofinger.ir/}
+                NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://api.romanofinger.ir/}
         image: starboy:latest
         restart: unless-stopped
         env_file:
             - .env
         ports:
             - "${HOST_PORT:-3000}:3000"
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "1m"
+                max-file: "3"

@@ -18,6 +18,8 @@ import { InstagramIcon, WhatsAppIcon } from "@/components/layout/home-icons"
 const quickLinks = [
     { label: "خانه", href: "/" },
     { label: "فینگر فود", href: "/products" },
+    { label: "دسته‌بندی‌ها", href: "/category" },
+    { label: "کالکشن‌ها", href: "/collection" },
     { label: "مجله", href: "/blog" },
     { label: "درباره ما", href: "/about" },
     { label: "تماس با ما", href: "/contact" },

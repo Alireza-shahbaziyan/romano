@@ -12,5 +12,6 @@ export type CollectionListItem = {
     short_description: string
     image: string | null
     image_dark: string | null
-    parent: CollectionListItem | null
+    is_active: boolean
+    parent: number | null
 }

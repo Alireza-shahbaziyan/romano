@@ -10,6 +10,8 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
 const staticPages = [
     { path: "", changefreq: "daily", priority: 1 },
     { path: "/products", changefreq: "daily", priority: 0.9 },
+    { path: "/category", changefreq: "weekly", priority: 0.7 },
+    { path: "/collection", changefreq: "weekly", priority: 0.7 },
     { path: "/blog", changefreq: "weekly", priority: 0.7 },
     { path: "/about", changefreq: "monthly", priority: 0.5 },
     { path: "/contact", changefreq: "monthly", priority: 0.5 },

@@ -33,3 +33,9 @@ export function formatPostDate(isoDate: string | null | undefined): string {
         year: "numeric",
     }).format(date)
 }
+
+/** Parses a `?page=` query value into a safe page number (min 1). */
+export function parsePageParam(page: string | undefined): number {
+    const n = Number(page)
+    return Number.isFinite(n) && n > 1 ? Math.floor(n) : 1
+}
