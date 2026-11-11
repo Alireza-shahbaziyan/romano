@@ -12,7 +12,7 @@
 // can be added without touching the code.
 // ---------------------------------------------------------------------------
 
-const DEFAULT_INSTAGRAM_URL = "https://www.instagram.com/"
+const DEFAULT_INSTAGRAM_URL = "https://www.instagram.com/romano.finger/"
 
 export const siteConfig = {
     /** Persian brand name */
