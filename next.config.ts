@@ -14,6 +14,11 @@ const nextConfig: NextConfig = {
                 protocol: "https",
                 hostname: "api.romanofinger.ir",
             },
+   {
+                protocol: "http",
+                hostname: "api.romanofinger.ir",
+                pathname: "/media/**",
+            },
             {
                 protocol: "https",
                 hostname: "c377485.parspack.net",
